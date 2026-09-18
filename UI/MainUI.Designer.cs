@@ -41,15 +41,21 @@
             mainUIStripMenuItemConsultarBitacora = new ToolStripMenuItem();
             mainUIStripMenuItemHistorialUsuario = new ToolStripMenuItem();
             agregarIdiomaToolStripMenuItem = new ToolStripMenuItem();
+            recuperarIntegridadToolStripMenuItem = new ToolStripMenuItem();
+            menuStripItemAlmacen = new ToolStripMenuItem();
+            almacenToolStripMenuItemGenerarSolicitud = new ToolStripMenuItem();
+            menuStripItemCompras = new ToolStripMenuItem();
+            comprasToolStripMenuItemEmitirOC = new ToolStripMenuItem();
+            menuStripItemContabilidad = new ToolStripMenuItem();
+            contabilidadToolStripMenuItemEvaluarCotiz = new ToolStripMenuItem();
             comboIdiomasGlobal = new ComboBox();
             label1 = new Label();
-            recuperarIntegridadToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem, menuStripItemAlmacen, menuStripItemCompras, menuStripItemContabilidad });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1127, 24);
@@ -140,6 +146,53 @@
             agregarIdiomaToolStripMenuItem.Text = "Agregar Idioma";
             agregarIdiomaToolStripMenuItem.Click += agregarIdiomaToolStripMenuItem_Click;
             // 
+            // recuperarIntegridadToolStripMenuItem
+            // 
+            recuperarIntegridadToolStripMenuItem.Name = "recuperarIntegridadToolStripMenuItem";
+            recuperarIntegridadToolStripMenuItem.Size = new Size(129, 20);
+            recuperarIntegridadToolStripMenuItem.Text = "Recuperar integridad";
+            recuperarIntegridadToolStripMenuItem.Click += recuperarIntegridadToolStripMenuItem_Click;
+            // 
+            // menuStripItemAlmacen
+            // 
+            menuStripItemAlmacen.DropDownItems.AddRange(new ToolStripItem[] { almacenToolStripMenuItemGenerarSolicitud });
+            menuStripItemAlmacen.Name = "menuStripItemAlmacen";
+            menuStripItemAlmacen.Size = new Size(66, 20);
+            menuStripItemAlmacen.Text = "Almacen";
+            // 
+            // almacenToolStripMenuItemGenerarSolicitud
+            // 
+            almacenToolStripMenuItemGenerarSolicitud.Name = "almacenToolStripMenuItemGenerarSolicitud";
+            almacenToolStripMenuItemGenerarSolicitud.Size = new Size(266, 22);
+            almacenToolStripMenuItemGenerarSolicitud.Text = "Generar Solicitud de Abastecimiento";
+            almacenToolStripMenuItemGenerarSolicitud.Click += almacenToolStripMenuItemGenerarSolicitud_Click;
+            // 
+            // menuStripItemCompras
+            // 
+            menuStripItemCompras.DropDownItems.AddRange(new ToolStripItem[] { comprasToolStripMenuItemEmitirOC });
+            menuStripItemCompras.Name = "menuStripItemCompras";
+            menuStripItemCompras.Size = new Size(67, 20);
+            menuStripItemCompras.Text = "Compras";
+            // 
+            // comprasToolStripMenuItemEmitirOC
+            // 
+            comprasToolStripMenuItemEmitirOC.Name = "comprasToolStripMenuItemEmitirOC";
+            comprasToolStripMenuItemEmitirOC.Size = new Size(203, 22);
+            comprasToolStripMenuItemEmitirOC.Text = "Emitir Orden de Compra";
+            // 
+            // menuStripItemContabilidad
+            // 
+            menuStripItemContabilidad.DropDownItems.AddRange(new ToolStripItem[] { contabilidadToolStripMenuItemEvaluarCotiz });
+            menuStripItemContabilidad.Name = "menuStripItemContabilidad";
+            menuStripItemContabilidad.Size = new Size(87, 20);
+            menuStripItemContabilidad.Text = "Contabilidad";
+            // 
+            // contabilidadToolStripMenuItemEvaluarCotiz
+            // 
+            contabilidadToolStripMenuItemEvaluarCotiz.Name = "contabilidadToolStripMenuItemEvaluarCotiz";
+            contabilidadToolStripMenuItemEvaluarCotiz.Size = new Size(171, 22);
+            contabilidadToolStripMenuItemEvaluarCotiz.Text = "Evaluar Cotizacion";
+            // 
             // comboIdiomasGlobal
             // 
             comboIdiomasGlobal.FormattingEnabled = true;
@@ -157,13 +210,6 @@
             label1.Size = new Size(44, 15);
             label1.TabIndex = 2;
             label1.Text = "Idioma";
-            // 
-            // recuperarIntegridadToolStripMenuItem
-            // 
-            recuperarIntegridadToolStripMenuItem.Name = "recuperarIntegridadToolStripMenuItem";
-            recuperarIntegridadToolStripMenuItem.Size = new Size(129, 20);
-            recuperarIntegridadToolStripMenuItem.Text = "Recuperar integridad";
-            recuperarIntegridadToolStripMenuItem.Click += recuperarIntegridadToolStripMenuItem_Click;
             // 
             // MainUI
             // 
@@ -201,5 +247,11 @@
         private ToolStripMenuItem mainUIStripMenuItemHistorialUsuario;
         private ToolStripMenuItem agregarIdiomaToolStripMenuItem;
         private ToolStripMenuItem recuperarIntegridadToolStripMenuItem;
+        private ToolStripMenuItem menuStripItemAlmacen;
+        private ToolStripMenuItem menuStripItemCompras;
+        private ToolStripMenuItem menuStripItemContabilidad;
+        private ToolStripMenuItem almacenToolStripMenuItemGenerarSolicitud;
+        private ToolStripMenuItem comprasToolStripMenuItemEmitirOC;
+        private ToolStripMenuItem contabilidadToolStripMenuItemEvaluarCotiz;
     }
 }

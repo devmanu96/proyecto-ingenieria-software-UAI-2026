@@ -19,9 +19,14 @@ namespace UI
             InitializeComponent();
             this.IsMdiContainer = true;
             GestorIdioma.GetInstance.Attach(this);
-            foreach (ToolStripMenuItem item in menuStrip1.Items)
+
+            // Ocultamos todos los menús superiores al arrancar, excepto Inicio
+            foreach (ToolStripItem item in menuStrip1.Items)
             {
-                item.Enabled = false;
+                if (item.Name != "mainUIStripMenuItemInicio")
+                {
+                    item.Visible = false;
+                }
             }
         }
 
@@ -47,20 +52,34 @@ namespace UI
         {
             try
             {
-                mainUIStripMenuItemInicio.Enabled = true;
+                // Limpieza de menús por si hubo un cambio de sesión
+                foreach (ToolStripItem item in menuStrip1.Items)
+                {
+                    if (item.Name != "mainUIStripMenuItemInicio")
+                        item.Visible = false;
+                }
+
+                mainUIStripMenuItemInicio.Visible = true;
+                mainUIStripMenuItemCerrarSesion.Visible = true;
                 mainUIStripMenuItemCerrarSesion.Enabled = true;
+                mainUIStripMenuItemIniciarSesion.Visible = false;
                 mainUIStripMenuItemIniciarSesion.Enabled = false;
 
                 Usuario? usuarioActual = SessionManager.getInstance.ObtenerUsuarioActivo();
 
                 if (usuarioActual != null)
                 {
-                    mainUIStripMenuItemGestionDeUsuarios.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
-                    recuperarIntegridadToolStripMenuItem.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
-                    mainUIStripMenuItemGestionDePerfiles.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-PERFIL"));
-                    mainUIStripMenuItemBitacora.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-CONSULTA-BIT"));
-                    mainUIStripMenuItemHistorialUsuario.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-HISTORIAL"));
-                    agregarIdiomaToolStripMenuItem.Enabled = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-AGREGAR-IDM"));
+                    // Módulo de Administración (Solo visibles si tienen el permiso)
+                    mainUIStripMenuItemGestionDeUsuarios.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
+                    recuperarIntegridadToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
+                    mainUIStripMenuItemGestionDePerfiles.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-PERFIL"));
+                    mainUIStripMenuItemBitacora.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-CONSULTA-BIT"));
+                    mainUIStripMenuItemHistorialUsuario.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-HISTORIAL"));
+                    agregarIdiomaToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-AGREGAR-IDM"));
+                    // Módulo de Almacén, Compras y Contabilidad (Solo visibles si tienen el permiso)
+                    menuStripItemAlmacen.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GEN-SOLICITUD") || p.ValidarPermiso("PERM-ABM-PROD"));
+                    menuStripItemCompras.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-SELECCIONAR-PROD"));
+                    menuStripItemContabilidad.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EVALUAR-COTIZ"));
                 }
                 else
                 {
@@ -71,7 +90,8 @@ namespace UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                string tituloError = GestorIdioma.GetInstance.TraducirMensaje("msg_TituloError", "Error");
+                MessageBox.Show(ex.Message, tituloError, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -79,7 +99,6 @@ namespace UI
         {
             try
             {
-                // --- AVISO DE SISTEMA CORRUPTO ---
                 List<Usuario> corruptos = GestorIntegridad.VerificarIntegridadDVH();
                 bool dvvValido = GestorIntegridad.VerificarIntegridadDVV();
 
@@ -98,11 +117,10 @@ namespace UI
                 return;
             }
 
-            // --- CARGA DEL LOGIN Y ELEMENTOS NORMALES ---
             LoginUI loginUI = new LoginUI();
             cargarFormulario(loginUI);
 
-            mainUIStripMenuItemCerrarSesion.Enabled = false;
+            mainUIStripMenuItemCerrarSesion.Visible = false;
 
             var listaIdiomas = GestorIdioma.GetInstance.ObtenerIdiomasDisponibles();
 
@@ -133,7 +151,6 @@ namespace UI
         private void mainUIStripMenuItemCerrarSesion_Click(object sender, EventArgs e)
         {
             GestorLogin gestorLogin = new GestorLogin();
-
             gestorLogin.LogOut();
 
             string mensaje = GestorIdioma.GetInstance.TraducirMensaje("msg_CierreSesionExito", "Sesión cerrada correctamente.");
@@ -141,16 +158,19 @@ namespace UI
 
             MessageBox.Show(mensaje, titulo, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            LoginUI loginUI = new LoginUI();
-            cargarFormulario(loginUI);
-
-            foreach (ToolStripMenuItem item in menuStrip1.Items)
+            foreach (ToolStripItem item in menuStrip1.Items)
             {
-                item.Enabled = false;
+                if (item.Name != "mainUIStripMenuItemInicio")
+                    item.Visible = false;
             }
 
+            mainUIStripMenuItemCerrarSesion.Visible = false;
             mainUIStripMenuItemCerrarSesion.Enabled = false;
+            mainUIStripMenuItemIniciarSesion.Visible = true;
             mainUIStripMenuItemIniciarSesion.Enabled = true;
+
+            LoginUI loginUI = new LoginUI();
+            cargarFormulario(loginUI);
         }
 
         private void mainUIStripMenuItemABMUsuarios_Click(object sender, EventArgs e)
@@ -182,7 +202,6 @@ namespace UI
             if (comboIdiomasGlobal.SelectedItem == null) return;
 
             BE.Idioma idiomaSeleccionado = (BE.Idioma)comboIdiomasGlobal.SelectedItem;
-
             GestorIdioma.GetInstance.CambiarIdioma(idiomaSeleccionado.Codigo);
         }
 
@@ -191,9 +210,7 @@ namespace UI
             if (action.StartsWith("Idioma:"))
             {
                 string codigoIdioma = action.Split(':')[1];
-
                 Dictionary<string, string> traducciones = GestorIdioma.GetInstance.ObtenerTraduccionesActuales(codigoIdioma);
-
                 TranslateServices.TraducirObjeto(this, traducciones);
             }
         }
@@ -220,6 +237,14 @@ namespace UI
         {
             GestorIntegridad.RecuperarIntegridadDVH();
             MessageBox.Show("Integridad de la base de datos recuperada correctamente.", "Recuperación de Integridad", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void almacenToolStripMenuItemGenerarSolicitud_Click(object sender, EventArgs e)
+        {
+            UI.Almacen.GenerarSolicitudUI formSolicitud = new UI.Almacen.GenerarSolicitudUI();
+
+            // Usamos el método que ya tenés en MainUI para cargarlo como hijo MDI
+            cargarFormulario(formSolicitud);
         }
     }
 }

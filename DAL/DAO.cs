@@ -14,8 +14,8 @@ namespace DAL
 
         private DataSet mainDataSet;
 
-        private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV;
-        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV;
+        private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud;
+        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud;
 
         private DAO()
         {
@@ -30,6 +30,9 @@ namespace DAL
             daPerfilUsuario = new SqlDataAdapter("Select * From PerfilUsuario", connectionString);
             daHistorialUsuario = new SqlDataAdapter("Select * From HistorialUsuario", connectionString);
             daDVV = new SqlDataAdapter("Select * From DVV", connectionString);
+            daProducto = new SqlDataAdapter("Select * From PRODUCTO", connectionString);
+            daSolicitudAbastecimiento = new SqlDataAdapter("Select * From SOLICITUD_ABASTECIMIENTO", connectionString);
+            daDetalleSolicitud = new SqlDataAdapter("Select * From DETALLE_SOLICITUD", connectionString);
 
             daUsers.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daBitacora.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -40,6 +43,9 @@ namespace DAL
             daPerfilUsuario.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daHistorialUsuario.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daDVV.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daProducto.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daSolicitudAbastecimiento.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daDetalleSolicitud.MissingSchemaAction = MissingSchemaAction.AddWithKey;
 
             cbUsers = new SqlCommandBuilder(daUsers);
             cbBitacora = new SqlCommandBuilder(daBitacora);
@@ -65,6 +71,9 @@ namespace DAL
                 CargarTablaConEsquema(daPerfilUsuario, "PerfilUsuario", conn);
                 CargarTablaConEsquema(daHistorialUsuario, "HistorialUsuario", conn);
                 CargarTablaConEsquema(daDVV, "DVV", conn);
+                CargarTablaConEsquema(daProducto, "Producto", conn);
+                CargarTablaConEsquema(daSolicitudAbastecimiento, "SOLICITUD_ABASTECIMIENTO", conn);
+                CargarTablaConEsquema(daDetalleSolicitud, "DETALLE_SOLICITUD", conn);
             }
 
             cbUsers = new SqlCommandBuilder(daUsers);
@@ -74,6 +83,9 @@ namespace DAL
             cbPerfilUsuario = new SqlCommandBuilder(daPerfilUsuario);
             cbHistorialUsuario = new SqlCommandBuilder(daHistorialUsuario);
             cbDVV = new SqlCommandBuilder(daDVV);
+            cbProducto = new SqlCommandBuilder(daProducto);
+            cbSolicitudAbastecimiento = new SqlCommandBuilder(daSolicitudAbastecimiento);
+            cbDetalleSolicitud = new SqlCommandBuilder(daDetalleSolicitud);
 
             ConfigurarAutoincrementoGeneral();
             ArmarRelaciones();
@@ -111,6 +123,18 @@ namespace DAL
                 else if (tableName == "DVV")
                 {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["NombreTabla"]! };
+                }
+                else if (tableName == "Producto")
+                {
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
+                }
+                else if (tableName == "SOLICITUD_ABASTECIMIENTO")
+                {
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdSolicitud"]! };
+                }
+                else if (tableName == "DETALLE_SOLICITUD")
+                {
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalle"]! };
                 }
                 else
                 {
@@ -169,6 +193,20 @@ namespace DAL
             mainDataSet.Relations.Add(drIdiomaTraduccion);
             mainDataSet.Relations.Add(drPerfilUsuarioUsuario);
             mainDataSet.Relations.Add(drPerfilUsuarioPerfil);
+
+            // Relación Cabecera-Detalle de Solicitudes
+            DataTable? dtSolicitud = mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"];
+            DataTable? dtDetalleSol = mainDataSet.Tables["DETALLE_SOLICITUD"];
+
+            if (dtSolicitud != null && dtDetalleSol != null)
+            {
+                DataRelation drSolicitudDetalle = new DataRelation(
+                    "FK_DetalleSolicitud_Cabecera",
+                    dtSolicitud.Columns["IdSolicitud"]!,
+                    dtDetalleSol.Columns["IdSolicitud"]!
+                );
+                mainDataSet.Relations.Add(drSolicitudDetalle);
+            }
         }
 
         private void ConfigurarAutoincrementoGeneral()
@@ -211,6 +249,16 @@ namespace DAL
                 colIdHistorial.AutoIncrement = true;
                 colIdHistorial.AutoIncrementSeed = maxIdHistorial + 1;
                 colIdHistorial.AutoIncrementStep = 1;
+            }
+
+            if (mainDataSet.Tables.Contains("SOLICITUD_ABASTECIMIENTO") && mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"]!.Columns.Contains("IdSolicitud"))
+            {
+                DataTable dtSol = mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"]!;
+                DataColumn colIdSol = dtSol.Columns["IdSolicitud"]!;
+                int maxIdSol = dtSol.Rows.Count > 0 ? dtSol.AsEnumerable().Max(r => r["IdSolicitud"] == DBNull.Value ? 0 : Convert.ToInt32(r["IdSolicitud"])) : 0;
+                colIdSol.AutoIncrement = true;
+                colIdSol.AutoIncrementSeed = maxIdSol + 1;
+                colIdSol.AutoIncrementStep = 1;
             }
         }
 
@@ -310,6 +358,9 @@ namespace DAL
                 daPerfilUsuario.SelectCommand.Connection = conn;
                 daHistorialUsuario.SelectCommand.Connection = conn;
                 daDVV.SelectCommand.Connection = conn;
+                daProducto.SelectCommand.Connection = conn;
+                daSolicitudAbastecimiento.SelectCommand.Connection = conn;
+                daDetalleSolicitud.SelectCommand.Connection = conn;
 
                 daUsers.InsertCommand = cbUsers.GetInsertCommand();
                 daUsers.UpdateCommand = cbUsers.GetUpdateCommand();
@@ -374,6 +425,27 @@ namespace DAL
                 daDVV.UpdateCommand.Connection = conn;
                 daDVV.DeleteCommand.Connection = conn;
 
+                daProducto.InsertCommand = cbProducto.GetInsertCommand();
+                daProducto.UpdateCommand = cbProducto.GetUpdateCommand();
+                daProducto.DeleteCommand = cbProducto.GetDeleteCommand();
+                daProducto.InsertCommand.Connection = conn;
+                daProducto.UpdateCommand.Connection = conn;
+                daProducto.DeleteCommand.Connection = conn;
+
+                daSolicitudAbastecimiento.InsertCommand = cbSolicitudAbastecimiento.GetInsertCommand();
+                daSolicitudAbastecimiento.UpdateCommand = cbSolicitudAbastecimiento.GetUpdateCommand();
+                daSolicitudAbastecimiento.DeleteCommand = cbSolicitudAbastecimiento.GetDeleteCommand();
+                daSolicitudAbastecimiento.InsertCommand.Connection = conn;
+                daSolicitudAbastecimiento.UpdateCommand.Connection = conn;
+                daSolicitudAbastecimiento.DeleteCommand.Connection = conn;
+
+                daDetalleSolicitud.InsertCommand = cbDetalleSolicitud.GetInsertCommand();
+                daDetalleSolicitud.UpdateCommand = cbDetalleSolicitud.GetUpdateCommand();
+                daDetalleSolicitud.DeleteCommand = cbDetalleSolicitud.GetDeleteCommand();
+                daDetalleSolicitud.InsertCommand.Connection = conn;
+                daDetalleSolicitud.UpdateCommand.Connection = conn;
+                daDetalleSolicitud.DeleteCommand.Connection = conn;
+
                 daUsers.Update(mainDataSet, "Usuario");
                 daBitacora.Update(mainDataSet, "Bitacora");
                 daPermiso.Update(mainDataSet, "Permiso");
@@ -383,6 +455,9 @@ namespace DAL
                 daPerfilUsuario.Update(mainDataSet, "PerfilUsuario");
                 daHistorialUsuario.Update(mainDataSet, "HistorialUsuario");
                 daDVV.Update(mainDataSet, "DVV");
+                daProducto.Update(mainDataSet, "Producto");
+                daSolicitudAbastecimiento.Update(mainDataSet, "SOLICITUD_ABASTECIMIENTO");
+                daDetalleSolicitud.Update(mainDataSet, "DETALLE_SOLICITUD");
 
                 mainDataSet.AcceptChanges();
             }

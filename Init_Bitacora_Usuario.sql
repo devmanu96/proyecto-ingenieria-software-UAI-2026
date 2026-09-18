@@ -1,3 +1,9 @@
+
+create database TrabajoDiploma;
+GO
+use TrabajoDiploma;
+GO
+
 CREATE TABLE Usuario (
     ID UNIQUEIDENTIFIER PRIMARY KEY,
     Username NVARCHAR(50) NOT NULL UNIQUE,
@@ -36,7 +42,6 @@ CREATE TABLE PermisoRelacion (
     CONSTRAINT FK_PermisoRelacion_Hijo FOREIGN KEY (ID_Hijo) REFERENCES Permiso(ID)
 );
 
-
 CREATE TABLE PerfilUsuario (
 	ID_Usuario UNIQUEIDENTIFIER,
 	ID_Perfil INT,
@@ -46,16 +51,16 @@ CREATE TABLE PerfilUsuario (
 );
 
 CREATE TABLE Idioma (
-    Codigo VARCHAR(5) NOT NULL,   -- Ej: 'ES', 'EN'
-    Nombre VARCHAR(50) NOT NULL,  -- Ej: 'Español', 'English'
+    Codigo VARCHAR(5) NOT NULL,
+    Nombre VARCHAR(50) NOT NULL,
     CONSTRAINT PK_Idioma PRIMARY KEY (Codigo)
 );
 
 CREATE TABLE Traduccion (
     IdTraduccion INT IDENTITY(1,1) NOT NULL,
     CodigoIdioma VARCHAR(5) NOT NULL,
-    KeyEtiqueta VARCHAR(100) NOT NULL, -- El nombre del control (Ej: loginUILabelUsername)
-    Texto NVARCHAR(MAX) NOT NULL,      -- El texto a mostrar (Ej: 'Nombre de usuario')
+    KeyEtiqueta VARCHAR(100) NOT NULL,
+    Texto NVARCHAR(MAX) NOT NULL,
     CONSTRAINT PK_Traduccion PRIMARY KEY (IdTraduccion),
     CONSTRAINT FK_Traduccion_Idioma FOREIGN KEY (CodigoIdioma) REFERENCES Idioma(Codigo)
 );
@@ -67,9 +72,128 @@ CREATE TABLE HistorialUsuario (
     ID_Usuario UNIQUEIDENTIFIER NOT NULL,
     Email VARCHAR(100),
     NumTelefono VARCHAR(20),
-    Fecha DATETIME NOT NULL
+    Fecha DATETIME NOT NULL,
     CONSTRAINT FK_HistorialUsuarioUsuario FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID)
 );
+
+-- =========================================================================
+-- FASE 2: CREACIÓN DE TABLAS DE NEGOCIO (B2B E-PROCUREMENT)
+-- =========================================================================
+
+CREATE TABLE PROVEEDOR (
+    IdProveedor INT PRIMARY KEY IDENTITY(1,1),
+    CUIT VARCHAR(20) NOT NULL UNIQUE,
+    RazonSocial VARCHAR(100) NOT NULL,
+    CondicionComercial VARCHAR(50),
+    Activo BIT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE PRODUCTO (
+    IdProducto VARCHAR(50) PRIMARY KEY,
+    CodigoSKU VARCHAR(50) NOT NULL UNIQUE,
+    NombreBebida VARCHAR(100) NOT NULL,
+    PrecioUnitarioLocal DECIMAL(18,2) NOT NULL,
+    Activo BIT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE CATALOGO_PROVEEDOR (
+    IdCatalogo INT PRIMARY KEY IDENTITY(1,1),
+    IdProveedor INT NOT NULL,
+    IdProducto VARCHAR(50) NOT NULL,
+    PrecioVigente DECIMAL(18,2) NOT NULL,
+    FechaActualizacion DATETIME NOT NULL,
+    CONSTRAINT FK_Catalogo_Proveedor FOREIGN KEY (IdProveedor) REFERENCES PROVEEDOR(IdProveedor),
+    CONSTRAINT FK_Catalogo_Producto FOREIGN KEY (IdProducto) REFERENCES PRODUCTO(IdProducto)
+);
+
+CREATE TABLE SOLICITUD_ABASTECIMIENTO (
+    IdSolicitud INT PRIMARY KEY IDENTITY(1,1),
+    FechaGeneracion DATETIME NOT NULL,
+    Estado VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE PRESUPUESTO (
+    IdPresupuesto INT PRIMARY KEY IDENTITY(1,1),
+    IdSolicitud INT NOT NULL,
+    IdProveedor INT NOT NULL,
+    FechaCalculo DATETIME NOT NULL,
+    MontoTotal DECIMAL(18,2) NOT NULL,
+    Estado VARCHAR(50) NOT NULL,
+    CONSTRAINT FK_Presupuesto_Solicitud FOREIGN KEY (IdSolicitud) REFERENCES SOLICITUD_ABASTECIMIENTO(IdSolicitud),
+    CONSTRAINT FK_Presupuesto_Proveedor FOREIGN KEY (IdProveedor) REFERENCES PROVEEDOR(IdProveedor)
+);
+
+CREATE TABLE ORDEN_COMPRA (
+    IdOrden INT PRIMARY KEY IDENTITY(1,1),
+    IdPresupuesto INT NOT NULL,
+    FechaEmision DATETIME NOT NULL,
+    Estado VARCHAR(50) NOT NULL,
+    CONSTRAINT FK_OrdenCompra_Presupuesto FOREIGN KEY (IdPresupuesto) REFERENCES PRESUPUESTO(IdPresupuesto)
+);
+
+CREATE TABLE DETALLE_OC (
+    IdDetalleOC INT PRIMARY KEY IDENTITY(1,1),
+    IdOrden INT NOT NULL,
+    IdProducto VARCHAR(50) NOT NULL,
+    CantidadSolicitada INT NOT NULL,
+    PrecioAcordado DECIMAL(18,2) NOT NULL,
+    CONSTRAINT FK_DetalleOC_Orden FOREIGN KEY (IdOrden) REFERENCES ORDEN_COMPRA(IdOrden),
+    CONSTRAINT FK_DetalleOC_Producto FOREIGN KEY (IdProducto) REFERENCES PRODUCTO(IdProducto)
+);
+
+CREATE TABLE PAGO_EMITIDO (
+    IdPago INT PRIMARY KEY IDENTITY(1,1),
+    IdOrden INT NOT NULL,
+    FechaPago DATETIME NOT NULL,
+    MontoTransferido DECIMAL(18,2) NOT NULL,
+    NumeroComprobante VARCHAR(50) NOT NULL,
+    CONSTRAINT FK_Pago_Orden FOREIGN KEY (IdOrden) REFERENCES ORDEN_COMPRA(IdOrden)
+);
+
+CREATE TABLE FACTURA_PROVEEDOR (
+    IdFactura INT PRIMARY KEY IDENTITY(1,1),
+    IdOrden INT NOT NULL,
+    NumeroFactura VARCHAR(50) NOT NULL,
+    FechaEmision DATETIME NOT NULL,
+    CONSTRAINT FK_Factura_Orden FOREIGN KEY (IdOrden) REFERENCES ORDEN_COMPRA(IdOrden)
+);
+
+CREATE TABLE RECEPCION (
+    IdRecepcion INT PRIMARY KEY IDENTITY(1,1),
+    IdOrden INT NOT NULL,
+    NumeroRemito VARCHAR(50) NOT NULL,
+    FechaIngreso DATETIME NOT NULL,
+    CONSTRAINT FK_Recepcion_Orden FOREIGN KEY (IdOrden) REFERENCES ORDEN_COMPRA(IdOrden)
+);
+
+CREATE TABLE LOTE_BEBIDA (
+    IdLote INT PRIMARY KEY IDENTITY(1,1),
+    IdRecepcion INT NOT NULL,
+    IdProducto VARCHAR(50) NOT NULL,
+    NumeroLote VARCHAR(50) NOT NULL,
+    FechaVencimiento DATETIME NOT NULL,
+    CantidadRecibida INT NOT NULL,
+    StockActual INT NOT NULL,
+    CONSTRAINT FK_Lote_Recepcion FOREIGN KEY (IdRecepcion) REFERENCES RECEPCION(IdRecepcion),
+    CONSTRAINT FK_Lote_Producto FOREIGN KEY (IdProducto) REFERENCES PRODUCTO(IdProducto)
+);
+
+CREATE TABLE [dbo].[DETALLE_SOLICITUD](
+    [IdDetalle] [uniqueidentifier] NOT NULL DEFAULT NEWID() PRIMARY KEY,
+    [IdSolicitud] [int] NOT NULL,
+    [IdProducto] [varchar](50) NOT NULL, 
+    [CantidadSolicitada] [int] NOT NULL,
+    
+    CONSTRAINT [FK_DetalleSolicitud_Cabecera] FOREIGN KEY([IdSolicitud]) 
+    REFERENCES [dbo].[SOLICITUD_ABASTECIMIENTO] ([IdSolicitud]),
+    
+    CONSTRAINT [FK_DetalleSolicitud_Producto] FOREIGN KEY([IdProducto]) 
+    REFERENCES [dbo].[PRODUCTO] ([IdProducto]) 
+);
+
+-- =========================================================================
+-- FASE 3: INSERCIONES DE CONFIGURACIÓN Y SEGURIDAD
+-- =========================================================================
 
 INSERT INTO Usuario VALUES (
 	'd1eda407-3582-4e0c-85cc-ae51eb67b826',
@@ -85,10 +209,11 @@ INSERT INTO Usuario VALUES (
 
 INSERT INTO DVV VALUES (
 	'Usuario',
-	'EE3883C5E753048F5D8E02A1EED6B72FE04574293EFC6F894D103D8C94AAF0F2'
+	'86E0E82C91C298A1D8FB1A735EDFBADBF12E91562C6BD3482DEC23F261314D85'
 );
 
-INSERT INTO Permiso VALUES
+-- Permisos Base
+INSERT INTO Permiso (Nombre, EsPerfil) VALUES
 ('PERM-GESTIONAR-USR', 0),
 ('PERM-GESTIONAR-IDM', 0),
 ('PERM-DESBLOQUEAR-USR', 0),
@@ -98,33 +223,66 @@ INSERT INTO Permiso VALUES
 ('PERM-AGREGAR-IDM', 0),
 ('PERF-ADMIN', 1);
 
-INSERT INTO PermisoRelacion VALUES
+-- Permisos Nuevos (Proceso B2B)
+INSERT INTO Permiso (Nombre, EsPerfil) VALUES
+('PERM-ABM-PROD', 0),
+('PERM-GEN-REPORTE', 0),
+('PERM-SELECCIONAR-PROD', 0),
+('PERM-EMITIR-OC', 0),
+('PERM-REG-FACTURA', 0),
+('PERM-EVALUAR-COTIZ', 0),
+('PERM-EFECTUAR-PAGO', 0),
+('PERM-ABM-PROV', 0),
+('PERM-AUDITAR-COMPRA', 0),
+('PERM-GEN-SOLICITUD', 0);
+
+-- Roles Nuevos (Proceso B2B)
+INSERT INTO Permiso (Nombre, EsPerfil) VALUES
+('PERF-ALMACEN', 1),
+('PERF-COMPRAS', 1),
+('PERF-CONTABLE', 1);
+
+-- Asignación Perfil ADMIN (Base + Nuevos Módulos)
+INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES
 ((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GESTIONAR-USR' AND EsPerfil = 0)),
 ((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GESTIONAR-IDM' AND EsPerfil = 0)),
 ((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GESTIONAR-PERFIL' AND EsPerfil = 0)),
 ((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GESTIONAR-HISTORIAL' AND EsPerfil = 0)),
 ((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-CONSULTA-BIT' AND EsPerfil = 0)),
-((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-AGREGAR-IDM' AND EsPerfil = 0));
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-AGREGAR-IDM' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-ABM-PROV' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-AUDITAR-COMPRA' AND EsPerfil = 0));
 
+-- Asignación Perfil ALMACÉN
+INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ALMACEN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-ABM-PROD' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ALMACEN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GEN-REPORTE' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-ALMACEN' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-GEN-SOLICITUD' AND EsPerfil = 0));
 
+-- Asignación Perfil COMPRAS
+INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-COMPRAS' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-SELECCIONAR-PROD' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-COMPRAS' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-EMITIR-OC' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-COMPRAS' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-REG-FACTURA' AND EsPerfil = 0));
+
+-- Asignación Perfil CONTABLE
+INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-EVALUAR-COTIZ' AND EsPerfil = 0)),
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-EFECTUAR-PAGO' AND EsPerfil = 0));
+
+-- Asignar Admin al Usuario Base
 INSERT INTO PerfilUsuario VALUES ('d1eda407-3582-4e0c-85cc-ae51eb67b826', (SELECT ID FROM Permiso WHERE Nombre = 'PERF-ADMIN' AND EsPerfil = 1));
--------------
 
--- ---------------------------------------------------------
--- INSERTS INICIALES
 
--- ---------------------------------------------------------
--- 1. REGISTRAR LOS IDIOMAS
--- ---------------------------------------------------------
+-- =========================================================================
+-- FASE 4: INSERCIÓN DE IDIOMAS Y TRADUCCIONES BASE
+-- =========================================================================
+
 INSERT INTO Idioma (Codigo, Nombre) VALUES ('ES', 'Español');
 INSERT INTO Idioma (Codigo, Nombre) VALUES ('EN', 'English');
 INSERT INTO Idioma (Codigo, Nombre) VALUES ('PT', 'Português');
 
--- ---------------------------------------------------------
-------------------------------------------Separados por Idioma
--- =========================================================================
--- 1. TRADUCCIONES AL ESPAÑOL (ES)
--- =========================================================================
+-- Traducciones al Español
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'MainUI', 'Sistema de gestion');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'mainUIStripMenuItemCerrarSesion', 'Cerrar sesión');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'mainUIStripMenuItemIniciarSesion', 'Iniciar sesión');
@@ -210,10 +368,25 @@ INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'LOG_PER
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridBitacora_Usuario', 'Usuario');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridBitacora_Fecha', 'Fecha y Hora');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridBitacora_Accion', 'Acción Realizada');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUILabelGridUsuarios', 'Usuarios disponibles');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUILabelGridEstadoUsuarios', 'Historial del usuario seleccionado');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'mainUIStripMenuItemHistorialUsuario', 'Historial usuario');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUIButtonRecuperarEstado', 'Recuperar estado');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'agregarIdiomaToolStripMenuItem', 'Agregar Idioma');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GestionIdiomasUI', 'Configuración de Nuevos Idiomas');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'labelCodigo', 'Código (Ej: FR):');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'labelNombre', 'Nombre Idioma:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnGuardarIdioma', 'Guardar Idioma');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColKey', 'Componente / Etiqueta');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColRef', 'Referencia (Español)');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColNuevo', 'Nueva Traducción');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_IdiomaGuardadoExito', 'El idioma y sus respectivas traducciones se han guardado exitosamente.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_CodigoNombreObligatorios', 'El código y el nombre del idioma son obligatorios.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_IdiomaYaExiste', 'El código de idioma ya se encuentra registrado en el sistema.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_TraduccionObligatoria', 'Debe proveer al menos una traducción para el nuevo idioma.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_CargarEtiquetas', 'Error al cargar etiquetas de referencia: ');
 
--- =========================================================================
--- 2. TRADUCCIONES AL INGLÉS (EN)
--- =========================================================================
+-- Traducciones al Inglés
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'MainUI', 'Management System');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'mainUIStripMenuItemCerrarSesion', 'Logout');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'mainUIStripMenuItemIniciarSesion', 'Login');
@@ -299,10 +472,25 @@ INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'LOG_PER
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridBitacora_Usuario', 'User');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridBitacora_Fecha', 'Date and Time');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridBitacora_Accion', 'Action Performed');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUILabelGridUsuarios', 'Available users');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUILabelGridEstadoUsuarios', 'Selected user history');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'mainUIStripMenuItemHistorialUsuario', 'User history');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUIButtonRecuperarEstado', 'Restore state');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'agregarIdiomaToolStripMenuItem', 'Add Language');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GestionIdiomasUI', 'New Languages Configuration');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'labelCodigo', 'Code (e.g., FR):');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'labelNombre', 'Language Name:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnGuardarIdioma', 'Save Language');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColKey', 'Component / Label');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColRef', 'Reference (Spanish)');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColNuevo', 'New Translation');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_IdiomaGuardadoExito', 'The language and its translations have been saved successfully.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_CodigoNombreObligatorios', 'Language code and name are required.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_IdiomaYaExiste', 'The language code is already registered in the system.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_TraduccionObligatoria', 'You must provide at least one translation for the new language.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_CargarEtiquetas', 'Error loading reference labels: ');
 
--- =========================================================================
--- 3. TRADUCCIONES AL PORTUGUÉS (PT)
--- =========================================================================
+-- Traducciones al Portugués
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'MainUI', 'Sistema de Gestão');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'mainUIStripMenuItemCerrarSesion', 'Sair');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'mainUIStripMenuItemIniciarSesion', 'Entrar');
@@ -388,85 +576,145 @@ INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'LOG_PER
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridBitacora_Usuario', 'Usuário');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridBitacora_Fecha', 'Data e Hora');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridBitacora_Accion', 'Ação Realizada');
-
--- Traducciones para la etiqueta: gestionHistorialUILabelGridUsuarios
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUILabelGridUsuarios', 'Usuarios disponibles');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUILabelGridUsuarios', 'Available users');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'gestionHistorialUILabelGridUsuarios', 'Usuários disponíveis');
-
--- Traducciones para la etiqueta: gestionHistorialUILabelGridEstadoUsuarios
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUILabelGridEstadoUsuarios', 'Historial del usuario seleccionado');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUILabelGridEstadoUsuarios', 'Selected user history');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'gestionHistorialUILabelGridEstadoUsuarios', 'Histórico do usuário selecionado');
-
--- Traducciones para la etiqueta: mainUIStripMenuItemHistorialUsuario
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'mainUIStripMenuItemHistorialUsuario', 'Historial usuario');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'mainUIStripMenuItemHistorialUsuario', 'User history');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'mainUIStripMenuItemHistorialUsuario', 'Histórico do usuário');
-
--- Traducciones para el botón: gestionHistorialUIButtonRecuperarEstado
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'gestionHistorialUIButtonRecuperarEstado', 'Recuperar estado');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'gestionHistorialUIButtonRecuperarEstado', 'Restore state');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'gestionHistorialUIButtonRecuperarEstado', 'Restaurar estado');
-
--- =========================================================================
--- TRADUCCIONES DEL NUEVO MÓDULO: GESTIÓN DE IDIOMAS
--- =========================================================================
-
--- 1. Botón del Menú Principal (MainUI)
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'agregarIdiomaToolStripMenuItem', 'Agregar Idioma');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'agregarIdiomaToolStripMenuItem', 'Add Language');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'agregarIdiomaToolStripMenuItem', 'Adicionar Idioma');
-
--- 2. Título del Formulario (GestionIdiomasUI)
--- Nota: La Key coincide con la propiedad "Name" del Formulario.
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GestionIdiomasUI', 'Configuración de Nuevos Idiomas');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GestionIdiomasUI', 'New Languages Configuration');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GestionIdiomasUI', 'Configuração de Novos Idiomas');
-
--- 3. Etiquetas (Labels) y Botones del Formulario
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'labelCodigo', 'Código (Ej: FR):');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'labelCodigo', 'Code (e.g., FR):');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'labelCodigo', 'Código (Ex: FR):');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'labelNombre', 'Nombre Idioma:');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'labelNombre', 'Language Name:');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'labelNombre', 'Nome do Idioma:');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnGuardarIdioma', 'Guardar Idioma');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnGuardarIdioma', 'Save Language');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnGuardarIdioma', 'Salvar Idioma');
-
--- 4. Cabeceras del DataGridView (Asignadas dinámicamente)
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColKey', 'Componente / Etiqueta');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColKey', 'Component / Label');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridIdioma_ColKey', 'Componente / Rótulo');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColRef', 'Referencia (Español)');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColRef', 'Reference (Spanish)');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridIdioma_ColRef', 'Referência (Espanhol)');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'GridIdioma_ColNuevo', 'Nueva Traducción');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'GridIdioma_ColNuevo', 'New Translation');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'GridIdioma_ColNuevo', 'Nova Tradução');
-
--- 5. Mensajes de Éxito, Validaciones y Errores (MessageBox / Exceptions)
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_IdiomaGuardadoExito', 'El idioma y sus respectivas traducciones se han guardado exitosamente.');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_IdiomaGuardadoExito', 'The language and its translations have been saved successfully.');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_IdiomaGuardadoExito', 'O idioma e suas traduções foram salvos com sucesso.');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_CodigoNombreObligatorios', 'El código y el nombre del idioma son obligatorios.');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_CodigoNombreObligatorios', 'Language code and name are required.');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'err_CodigoNombreObligatorios', 'O código e o nome do idioma são obrigatórios.');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_IdiomaYaExiste', 'El código de idioma ya se encuentra registrado en el sistema.');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_IdiomaYaExiste', 'The language code is already registered in the system.');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'err_IdiomaYaExiste', 'O código do idioma já está registrado no sistema.');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_TraduccionObligatoria', 'Debe proveer al menos una traducción para el nuevo idioma.');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_TraduccionObligatoria', 'You must provide at least one translation for the new language.');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'err_TraduccionObligatoria', 'Você deve fornecer pelo menos uma tradução para o novo idioma.');
-
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'err_CargarEtiquetas', 'Error al cargar etiquetas de referencia: ');
-INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'err_CargarEtiquetas', 'Error loading reference labels: ');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'err_CargarEtiquetas', 'Erro ao carregar rótulos de referência: ');
+
+
+-- =========================================================================
+-- 1. CREACIÓN DEL ROL VENDEDOR (Si no existía previamente)
+-- =========================================================================
+IF NOT EXISTS (SELECT 1 FROM Permiso WHERE Nombre = 'PERF-VENDEDOR')
+BEGIN
+    INSERT INTO Permiso (Nombre, EsPerfil) VALUES ('PERF-VENDEDOR', 1);
+END
+
+-- =========================================================================
+-- 2. CREACIÓN DE USUARIOS
+-- =========================================================================
+
+-- Insertar vendedor1
+INSERT INTO Usuario (ID, Username, PasswordHash, Email, NumTelefono, EstaBloqueado, Idioma, IntentosFallidos, DVH)
+VALUES (
+    NEWID(), 
+    'vendedor1', 
+    '5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5', -- Hash de '12345'
+    'vendedor1@empresa.com', 
+    '+541100000001', 
+    0, 
+    'ES', 
+    0, 
+    '0F988652BC99ED283EC500C36A2974D1B915134AB50B8C50743B11CEB8A09C11'
+);
+
+-- Insertar vendedor2
+INSERT INTO Usuario (ID, Username, PasswordHash, Email, NumTelefono, EstaBloqueado, Idioma, IntentosFallidos, DVH)
+VALUES (
+    NEWID(), 
+    'vendedor2', 
+    '5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5', -- Hash de '12345'
+    'vendedor2@empresa.com', 
+    '+541100000002', 
+    0, 
+    'ES', 
+    0, 
+    'E55FFC885CCF686DB51ABADB3F1F320B6A2910630E7E0A64D2E56327FE2F91BF'
+);
+
+-- Insertar almacen1
+INSERT INTO Usuario (ID, Username, PasswordHash, Email, NumTelefono, EstaBloqueado, Idioma, IntentosFallidos, DVH)
+VALUES (
+    NEWID(), 
+    'almacen1', 
+    '5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5', -- Hash de '12345'
+    'almacen1@empresa.com', 
+    '+541100000003', 
+    0, 
+    'ES', 
+    0, 
+    '48A0D8F27F77BF3261F0D3E1C890FE6FB1DFD7AA971297F40E582650D4BB1710'
+);
+
+-- Insertar analista1
+INSERT INTO Usuario (ID, Username, PasswordHash, Email, NumTelefono, EstaBloqueado, Idioma, IntentosFallidos, DVH)
+VALUES (
+    NEWID(), 
+    'analista1', 
+    '5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5', -- Hash de '12345'
+    'analista1@empresa.com', 
+    '+541100000004', 
+    0, 
+    'ES', 
+    0, 
+    '1ABC49B84ADE1CAED8195E50A5502641E3B690477D056B65F2F6F484D759EEF9'
+);
+
+-- =========================================================================
+-- CREACIÓN DE USUARIO: SECTOR COMPRAS
+-- =========================================================================
+
+-- Insertar compras1
+INSERT INTO Usuario (ID, Username, PasswordHash, Email, NumTelefono, EstaBloqueado, Idioma, IntentosFallidos, DVH)
+VALUES (
+    NEWID(), 
+    'compras1', 
+    '5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5', -- Hash de '12345'
+    'compras1@empresa.com', 
+    '+541100000005', 
+    0, 
+    'ES', 
+    0, 
+    'TEMPORAL'
+);
+
+-- Asignar rol a compras1 (Solo Compras)
+INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) 
+VALUES (
+    (SELECT ID FROM Usuario WHERE Username = 'compras1'), 
+    (SELECT ID FROM Permiso WHERE Nombre = 'PERF-COMPRAS' AND EsPerfil = 1)
+);
+-- =========================================================================
+-- 3. ASIGNACIÓN DE ROLES A LOS USUARIOS
+-- =========================================================================
+
+-- Asignar rol a vendedor1
+INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) 
+VALUES (
+    (SELECT ID FROM Usuario WHERE Username = 'vendedor1'), 
+    (SELECT ID FROM Permiso WHERE Nombre = 'PERF-VENDEDOR' AND EsPerfil = 1)
+);
+
+-- Asignar rol a vendedor2
+INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) 
+VALUES (
+    (SELECT ID FROM Usuario WHERE Username = 'vendedor2'), 
+    (SELECT ID FROM Permiso WHERE Nombre = 'PERF-VENDEDOR' AND EsPerfil = 1)
+);
+
+-- Asignar roles a almacen1 (Almacén + Compras)
+INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) 
+VALUES (
+    (SELECT ID FROM Usuario WHERE Username = 'almacen1'), 
+    (SELECT ID FROM Permiso WHERE Nombre = 'PERF-ALMACEN' AND EsPerfil = 1)
+);
+
+-- Asignar rol a analista1 (Contable)
+INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) 
+VALUES (
+    (SELECT ID FROM Usuario WHERE Username = 'analista1'), 
+    (SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1)
+);
