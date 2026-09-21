@@ -1,7 +1,7 @@
 
-create database TrabajoDiploma;
+create database DistriuidoraMegaDrink;
 GO
-use TrabajoDiploma;
+use DistriuidoraMegaDrink;
 GO
 
 CREATE TABLE Usuario (
@@ -93,15 +93,18 @@ CREATE TABLE PRODUCTO (
     CodigoSKU VARCHAR(50) NOT NULL UNIQUE,
     NombreBebida VARCHAR(100) NOT NULL,
     PrecioUnitarioLocal DECIMAL(18,2) NOT NULL,
-    Activo BIT NOT NULL DEFAULT 1
+    Activo BIT NOT NULL DEFAULT 1,
+    StockActual INT NOT NULL DEFAULT 0,
+    PuntoPedido INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE CATALOGO_PROVEEDOR (
-    IdCatalogo INT PRIMARY KEY IDENTITY(1,1),
     IdProveedor INT NOT NULL,
     IdProducto VARCHAR(50) NOT NULL,
-    PrecioVigente DECIMAL(18,2) NOT NULL,
-    FechaActualizacion DATETIME NOT NULL,
+    NombreArticuloProveedor VARCHAR(100) NOT NULL, 
+    PrecioPallet DECIMAL(12,2) NOT NULL,  
+    UnidadesPorPallet INT NOT NULL,       
+    PRIMARY KEY (IdProveedor, IdProducto),
     CONSTRAINT FK_Catalogo_Proveedor FOREIGN KEY (IdProveedor) REFERENCES PROVEEDOR(IdProveedor),
     CONSTRAINT FK_Catalogo_Producto FOREIGN KEY (IdProducto) REFERENCES PRODUCTO(IdProducto)
 );
@@ -178,17 +181,13 @@ CREATE TABLE LOTE_BEBIDA (
     CONSTRAINT FK_Lote_Producto FOREIGN KEY (IdProducto) REFERENCES PRODUCTO(IdProducto)
 );
 
-CREATE TABLE [dbo].[DETALLE_SOLICITUD](
-    [IdDetalle] [uniqueidentifier] NOT NULL DEFAULT NEWID() PRIMARY KEY,
-    [IdSolicitud] [int] NOT NULL,
-    [IdProducto] [varchar](50) NOT NULL, 
-    [CantidadSolicitada] [int] NOT NULL,
-    
-    CONSTRAINT [FK_DetalleSolicitud_Cabecera] FOREIGN KEY([IdSolicitud]) 
-    REFERENCES [dbo].[SOLICITUD_ABASTECIMIENTO] ([IdSolicitud]),
-    
-    CONSTRAINT [FK_DetalleSolicitud_Producto] FOREIGN KEY([IdProducto]) 
-    REFERENCES [dbo].[PRODUCTO] ([IdProducto]) 
+CREATE TABLE DETALLE_SOLICITUD(
+    IdDetalle UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID() PRIMARY KEY,
+    IdSolicitud INT NOT NULL,
+    IdProducto VARCHAR(50) NOT NULL, 
+    CantidadSolicitada INT NOT NULL,
+    CONSTRAINT FK_DetalleSolicitud_Cabecera FOREIGN KEY(IdSolicitud) REFERENCES SOLICITUD_ABASTECIMIENTO(IdSolicitud),
+    CONSTRAINT FK_DetalleSolicitud_Producto FOREIGN KEY(IdProducto) REFERENCES PRODUCTO(IdProducto) 
 );
 
 -- =========================================================================
@@ -741,12 +740,16 @@ VALUES
 
 
 -- 1. Agregamos los productos faltantes a tu tabla principal para que el Almacén los reconozca
-INSERT INTO [dbo].[PRODUCTO] ([IdProducto], [CodigoSKU], [NombreBebida], [PrecioUnitarioLocal], [Activo], [StockActual], [PuntoPedido])
-VALUES 
+INSERT INTO PRODUCTO (IdProducto, CodigoSKU, NombreBebida, PrecioUnitarioLocal, Activo, StockActual, PuntoPedido) VALUES 
 ('7790895001999', 'SKU-011', 'Coca-Cola Lata 473ml', 1000, 1, 50, 100),
 ('7798099881038', 'SKU-012', 'Manaos Pomelo 2.25L', 900, 1, 80, 50),
 ('7790503000001', 'SKU-013', 'Baggio Multifruta 1L', 1200, 1, 40, 60),
-('7790503000002', 'SKU-014', 'Baggio Naranja 1L', 1200, 1, 40, 60);
+('7790503000002', 'SKU-014', 'Baggio Naranja 1L', 1200, 1, 40, 60),
+('7790895000997', 'SKU-015', 'Coca-Cola Original 2.25L', 1500, 1, 30, 80),
+('7791813421112', 'SKU-016', '7Up Regular 1.5L', 1100, 1, 40, 70),
+('7791813421051', 'SKU-017', 'Paso de los Toros 1.5L', 1100, 1, 45, 70),
+('7798099881014', 'SKU-018', 'Manaos Cola 2.25L', 900, 1, 100, 50),
+('7798099881021', 'SKU-019', 'Manaos Lima Limón 2.25L', 900, 1, 90, 50);
 
 -- 2. Buscamos los IDs reales
 DECLARE @IdCoca INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-50673003-8');
@@ -755,17 +758,13 @@ DECLARE @IdManaos INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-7089
 DECLARE @IdBaggio INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-50013003-4');
 
 -- 3. Insertamos todo de una sola pasada
-INSERT INTO [dbo].[CATALOGO_PROVEEDOR] ([IdProveedor], [IdProducto], [NombreArticuloProveedor], [PrecioPallet], [UnidadesPorPallet]) 
-VALUES 
+INSERT INTO CATALOGO_PROVEEDOR (IdProveedor, IdProducto, NombreArticuloProveedor, PrecioPallet, UnidadesPorPallet) VALUES 
 (@IdCoca, '7790895000997', 'Pallet Coca-Cola Original 2.25L (40 packs x 6)', 360000.00, 240),
 (@IdCoca, '7790895001999', 'Pallet Coca-Cola Lata 473ml (100 packs x 6)', 450000.00, 600),
-
 (@IdPepsi, '7791813421112', 'Pallet 7Up Regular 1.5L (60 packs x 6)', 300000.00, 360),
 (@IdPepsi, '7791813421051', 'Pallet Paso de los Toros Pomelo 1.5L (60 packs x 6)', 280000.00, 360),
-
 (@IdManaos, '7798099881014', 'Pallet Manaos Cola 2.25L (50 packs x 6)', 200000.00, 300),
 (@IdManaos, '7798099881021', 'Pallet Manaos Lima Limón 2.25L (50 packs x 6)', 200000.00, 300),
 (@IdManaos, '7798099881038', 'Pallet Manaos Pomelo 2.25L (50 packs x 6)', 200000.00, 300),
-
 (@IdBaggio, '7790503000001', 'Pallet Baggio Multifruta 1L (80 cajas x 8)', 400000.00, 640),
 (@IdBaggio, '7790503000002', 'Pallet Baggio Naranja 1L (80 cajas x 8)', 400000.00, 640);

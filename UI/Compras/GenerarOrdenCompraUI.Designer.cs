@@ -32,12 +32,11 @@
             lblFaltantesSolicitados = new Label();
             dgvCarritoOC = new DataGridView();
             btnCancelarOC = new Button();
-            label2 = new Label();
-            label3 = new Label();
-            label4 = new Label();
+            lblCatalogo = new Label();
+            lblOrdenCompra = new Label();
+            lblCantidadPallets = new Label();
             lblTotalOC = new Label();
             btnEmitirOrden = new Button();
-            label6 = new Label();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             dgvCatalogo = new DataGridView();
@@ -46,6 +45,7 @@
             tabPage4 = new TabPage();
             numericUpDown1 = new NumericUpDown();
             btnAgregarCarrito = new Button();
+            lblMonto = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvFaltantes).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarritoOC).BeginInit();
             tabControl1.SuspendLayout();
@@ -96,37 +96,37 @@
             btnCancelarOC.Text = "Volver";
             btnCancelarOC.UseVisualStyleBackColor = true;
             // 
-            // label2
+            // lblCatalogo
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(361, 49);
-            label2.Name = "label2";
-            label2.Size = new Size(205, 15);
-            label2.TabIndex = 5;
-            label2.Text = "CATÁLOGO PROVEEDORES DIRECTOS";
+            lblCatalogo.AutoSize = true;
+            lblCatalogo.Location = new Point(361, 49);
+            lblCatalogo.Name = "lblCatalogo";
+            lblCatalogo.Size = new Size(205, 15);
+            lblCatalogo.TabIndex = 5;
+            lblCatalogo.Text = "CATÁLOGO PROVEEDORES DIRECTOS";
             // 
-            // label3
+            // lblOrdenCompra
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(12, 412);
-            label3.Name = "label3";
-            label3.Size = new Size(116, 15);
-            label3.TabIndex = 6;
-            label3.Text = "ORDEN DE COMPRA";
+            lblOrdenCompra.AutoSize = true;
+            lblOrdenCompra.Location = new Point(12, 412);
+            lblOrdenCompra.Name = "lblOrdenCompra";
+            lblOrdenCompra.Size = new Size(116, 15);
+            lblOrdenCompra.TabIndex = 6;
+            lblOrdenCompra.Text = "ORDEN DE COMPRA";
             // 
-            // label4
+            // lblCantidadPallets
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(417, 364);
-            label4.Name = "label4";
-            label4.Size = new Size(95, 15);
-            label4.TabIndex = 7;
-            label4.Text = "Cantidad Pallets:";
+            lblCantidadPallets.AutoSize = true;
+            lblCantidadPallets.Location = new Point(417, 364);
+            lblCantidadPallets.Name = "lblCantidadPallets";
+            lblCantidadPallets.Size = new Size(95, 15);
+            lblCantidadPallets.TabIndex = 7;
+            lblCantidadPallets.Text = "Cantidad Pallets:";
             // 
             // lblTotalOC
             // 
             lblTotalOC.AutoSize = true;
-            lblTotalOC.Location = new Point(686, 638);
+            lblTotalOC.Location = new Point(639, 638);
             lblTotalOC.Name = "lblTotalOC";
             lblTotalOC.Size = new Size(65, 15);
             lblTotalOC.TabIndex = 8;
@@ -142,15 +142,6 @@
             btnEmitirOrden.TabIndex = 9;
             btnEmitirOrden.Text = "Emitir Orden Compra";
             btnEmitirOrden.UseVisualStyleBackColor = false;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Location = new Point(757, 638);
-            label6.Name = "label6";
-            label6.Size = new Size(17, 15);
-            label6.TabIndex = 10;
-            label6.Text = "--";
             // 
             // tabControl1
             // 
@@ -223,6 +214,7 @@
             numericUpDown1.Name = "numericUpDown1";
             numericUpDown1.Size = new Size(48, 23);
             numericUpDown1.TabIndex = 14;
+            numericUpDown1.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // btnAgregarCarrito
             // 
@@ -233,20 +225,29 @@
             btnAgregarCarrito.Text = "Agregar al Carrito";
             btnAgregarCarrito.UseVisualStyleBackColor = true;
             // 
+            // lblMonto
+            // 
+            lblMonto.AutoSize = true;
+            lblMonto.Location = new Point(710, 638);
+            lblMonto.Name = "lblMonto";
+            lblMonto.Size = new Size(17, 15);
+            lblMonto.TabIndex = 16;
+            lblMonto.Text = "--";
+            // 
             // GenerarOrdenCompraUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(840, 729);
+            Controls.Add(lblMonto);
             Controls.Add(btnAgregarCarrito);
             Controls.Add(numericUpDown1);
             Controls.Add(tabControl1);
-            Controls.Add(label6);
             Controls.Add(btnEmitirOrden);
             Controls.Add(lblTotalOC);
-            Controls.Add(label4);
-            Controls.Add(label3);
-            Controls.Add(label2);
+            Controls.Add(lblCantidadPallets);
+            Controls.Add(lblOrdenCompra);
+            Controls.Add(lblCatalogo);
             Controls.Add(btnCancelarOC);
             Controls.Add(dgvCarritoOC);
             Controls.Add(lblFaltantesSolicitados);
@@ -267,15 +268,13 @@
 
         private DataGridView dgvFaltantes;
         private Label lblFaltantesSolicitados;
-        private DataGridView dgvCarritoOC; // <-- Corregido aquí
+        private DataGridView dgvCarritoOC;
         private Button btnCancelarOC;
-        private Label label2;
-        private Label label3;
-        private Label label4;
-        private Label lblTotalOC;          // <-- Corregido aquí
+        private Label lblCatalogo;
+        private Label lblOrdenCompra;
+        private Label lblCantidadPallets;
+        private Label lblTotalOC;
         private Button btnEmitirOrden;
-        private Label label6;
-        private Label label7;
         private TabControl tabControl1;
         private TabPage tabPage1;
         private TabPage tabPage2;
@@ -284,5 +283,6 @@
         private DataGridView dgvCatalogo;
         private NumericUpDown numericUpDown1;
         private Button btnAgregarCarrito;
+        private Label lblMonto;
     }
 }

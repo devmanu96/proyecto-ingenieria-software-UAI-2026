@@ -43,7 +43,7 @@
             dgvSolicitudesPendientes.AllowUserToAddRows = false;
             dgvSolicitudesPendientes.AllowUserToDeleteRows = false;
             dgvSolicitudesPendientes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvSolicitudesPendientes.Location = new Point(29, 69);
+            dgvSolicitudesPendientes.Location = new Point(27, 61);
             dgvSolicitudesPendientes.MultiSelect = false;
             dgvSolicitudesPendientes.Name = "dgvSolicitudesPendientes";
             dgvSolicitudesPendientes.ReadOnly = true;
@@ -56,7 +56,7 @@
             dgvDetalleSolicitud.AllowUserToAddRows = false;
             dgvDetalleSolicitud.AllowUserToDeleteRows = false;
             dgvDetalleSolicitud.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvDetalleSolicitud.Location = new Point(29, 318);
+            dgvDetalleSolicitud.Location = new Point(27, 310);
             dgvDetalleSolicitud.MultiSelect = false;
             dgvDetalleSolicitud.Name = "dgvDetalleSolicitud";
             dgvDetalleSolicitud.ReadOnly = true;
@@ -67,7 +67,7 @@
             // btnAtenderSolicitud
             // 
             btnAtenderSolicitud.Enabled = false;
-            btnAtenderSolicitud.Location = new Point(300, 553);
+            btnAtenderSolicitud.Location = new Point(443, 86);
             btnAtenderSolicitud.Name = "btnAtenderSolicitud";
             btnAtenderSolicitud.Size = new Size(125, 39);
             btnAtenderSolicitud.TabIndex = 2;
@@ -76,7 +76,7 @@
             // 
             // btnVolver
             // 
-            btnVolver.Location = new Point(29, 553);
+            btnVolver.Location = new Point(27, 527);
             btnVolver.Name = "btnVolver";
             btnVolver.Size = new Size(93, 39);
             btnVolver.TabIndex = 3;
@@ -86,7 +86,7 @@
             // lblDetalleProductos
             // 
             lblDetalleProductos.AutoSize = true;
-            lblDetalleProductos.Location = new Point(29, 282);
+            lblDetalleProductos.Location = new Point(27, 274);
             lblDetalleProductos.Name = "lblDetalleProductos";
             lblDetalleProductos.Size = new Size(200, 15);
             lblDetalleProductos.TabIndex = 4;
@@ -95,7 +95,7 @@
             // lblSolicitudesPendientes
             // 
             lblSolicitudesPendientes.AutoSize = true;
-            lblSolicitudesPendientes.Location = new Point(29, 51);
+            lblSolicitudesPendientes.Location = new Point(27, 43);
             lblSolicitudesPendientes.Name = "lblSolicitudesPendientes";
             lblSolicitudesPendientes.Size = new Size(191, 15);
             lblSolicitudesPendientes.TabIndex = 5;
@@ -105,7 +105,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(469, 689);
+            ClientSize = new Size(582, 649);
             Controls.Add(lblSolicitudesPendientes);
             Controls.Add(lblDetalleProductos);
             Controls.Add(btnVolver);

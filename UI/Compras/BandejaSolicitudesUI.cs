@@ -93,5 +93,12 @@ namespace UI.Compras
         {
             this.Close();
         }
+        protected override void TraducirElementosParticulares(string codigoIdioma)
+        {
+            if (dgvSolicitudesPendientes.Columns.Contains("IdSolicitud"))
+            {
+                dgvSolicitudesPendientes.Columns["IdSolicitud"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_NumSolicitud", "N° Solicitud");
+            }
+        }
     }
 }

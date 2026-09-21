@@ -43,7 +43,7 @@ namespace UI.Almacen
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error al cargar inventario", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, GestorIdioma.GetInstance.TraducirMensaje("msg_TituloError", "Error al cargar inventario"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -54,15 +54,12 @@ namespace UI.Almacen
             dgvInventario.AllowUserToAddRows = false;
             dgvInventario.ReadOnly = true;
 
-            // Renombramos las cabeceras (idealmente, luego las pasás por tu GestorIdioma)
             if (dgvInventario.Columns.Count > 0)
             {
                 dgvInventario.Columns["CodigoBarra"].HeaderText = "Código de Barras";
                 dgvInventario.Columns["Nombre"].HeaderText = "Producto";
                 dgvInventario.Columns["StockActual"].HeaderText = "Stock Actual";
                 dgvInventario.Columns["PuntoPedido"].HeaderText = "Punto de Pedido";
-
-                // Ocultamos la propiedad booleana calculada para que no se vea como una columna de Checkbox
                 dgvInventario.Columns["RequiereAbastecimiento"].Visible = false;
             }
         }
@@ -90,6 +87,10 @@ namespace UI.Almacen
             dgvSolicitud.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             dgvSolicitud.Columns.Add("NombreProducto", "Producto Faltante");
+
+            // CORRECCIÓN: Se añade la columna Cantidad para evitar el NullReferenceException
+            dgvSolicitud.Columns.Add("Cantidad", "Cant. Sugerida");
+
             dgvSolicitud.Columns.Add("Fecha", "Fecha de Solicitud");
             dgvSolicitud.Columns.Add("Empleado", "Solicitado por");
         }
@@ -97,24 +98,42 @@ namespace UI.Almacen
         private void ActualizarGrillaSolicitud()
         {
             dgvSolicitud.Rows.Clear();
-
             string fechaActual = DateTime.Now.ToString("dd/MM/yyyy");
 
             foreach (var detalle in listaSolicitudActual)
             {
-                dgvSolicitud.Rows.Add(detalle.Producto.Nombre, fechaActual, SessionManager.getInstance.ObtenerUsuarioActivo().Email);
+                // CORRECCIÓN: Se incluye detalle.CantidadSolicitada en la grilla visual
+                dgvSolicitud.Rows.Add(detalle.Producto.Nombre, detalle.CantidadSolicitada, fechaActual, SessionManager.getInstance.ObtenerUsuarioActivo().Email);
             }
         }
+
         protected override void TraducirElementosParticulares(string codigoIdioma)
         {
-            // Aquí integrarás la traducción de las columnas de dgvInventario cuando sumes las etiquetas a tu BD
+            // CORRECCIÓN SEGURIDAD: Validamos con Contains antes de traducir para evitar crashes
+            if (dgvInventario.Columns.Count > 0)
+            {
+                if (dgvInventario.Columns.Contains("CodigoBarra")) dgvInventario.Columns["CodigoBarra"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CodigoBarras", "Código de Barras");
+                if (dgvInventario.Columns.Contains("Nombre")) dgvInventario.Columns["Nombre"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Producto", "Producto");
+                if (dgvInventario.Columns.Contains("StockActual")) dgvInventario.Columns["StockActual"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_StockActual", "Stock Actual");
+                if (dgvInventario.Columns.Contains("PuntoPedido")) dgvInventario.Columns["PuntoPedido"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_PuntoPedido", "Punto de Pedido");
+            }
+
+            if (dgvSolicitud.Columns.Count > 0)
+            {
+                if (dgvSolicitud.Columns.Contains("NombreProducto")) dgvSolicitud.Columns["NombreProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_ProdFaltante", "Producto Faltante");
+                if (dgvSolicitud.Columns.Contains("Cantidad")) dgvSolicitud.Columns["Cantidad"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CantSugerida", "Cant. Sugerida");
+                if (dgvSolicitud.Columns.Contains("Fecha")) dgvSolicitud.Columns["Fecha"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_FechaSol", "Fecha de Solicitud");
+                if (dgvSolicitud.Columns.Contains("Empleado")) dgvSolicitud.Columns["Empleado"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_SolicitadoPor", "Solicitado por");
+            }
         }
 
         private void Agregar_Click(object sender, EventArgs e)
         {
+            string tituloAtencion = GestorIdioma.GetInstance.TraducirMensaje("msg_Atencion", "Atención");
+
             if (dgvInventario.CurrentRow == null)
             {
-                MessageBox.Show("Por favor, seleccione un producto del inventario que necesite reabastecimiento.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_SeleccioneProdAbastecimiento", "Por favor, seleccione un producto del inventario que necesite reabastecimiento."), tituloAtencion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -123,23 +142,26 @@ namespace UI.Almacen
             bool yaExisteEnCarrito = listaSolicitudActual.Exists(d => d.Producto.CodigoBarra == prodSeleccionado.CodigoBarra);
             if (yaExisteEnCarrito)
             {
-                MessageBox.Show("Este producto ya está en la lista actual de faltantes.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_ProdYaEnFaltantes", "Este producto ya está en la lista actual de faltantes."), tituloAtencion, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            //NUEVA PREVENCIÓN AUTOMÁTICA
             bool yaPedidoACompras = gestorSolicitud.ValidarProductoPendienteCompras(prodSeleccionado.CodigoBarra);
             if (yaPedidoACompras)
             {
-                MessageBox.Show("Este producto ya se encuentra en una solicitud anterior pendiente de revisión por Compras.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_ProdYaEnCompras", "Este producto ya se encuentra en una solicitud anterior pendiente de revisión por Compras."), tituloAtencion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            // Cálculo automático de reabastecimiento ideal
+            int cantidadCalculada = (prodSeleccionado.PuntoPedido * 2) - prodSeleccionado.StockActual;
+            if (cantidadCalculada <= 0) cantidadCalculada = 50;
 
             DetalleSolicitud nuevoDetalle = new DetalleSolicitud
             {
                 IdDetalle = Guid.NewGuid(),
                 Producto = prodSeleccionado,
-                CantidadSolicitada = 0
+                CantidadSolicitada = cantidadCalculada
             };
 
             listaSolicitudActual.Add(nuevoDetalle);
@@ -150,7 +172,7 @@ namespace UI.Almacen
         {
             if (listaSolicitudActual.Count == 0)
             {
-                MessageBox.Show("No hay productos en la lista para solicitar.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_NoHayProductosSolicitar", "No hay productos en la lista para solicitar."), GestorIdioma.GetInstance.TraducirMensaje("msg_Atencion", "Atención"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -161,14 +183,14 @@ namespace UI.Almacen
 
                 gestorSolicitud.GenerarNuevaSolicitud(nuevaSolicitud);
 
-                MessageBox.Show("Solicitud enviada a Compras exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_SolicitudEnviadaExito", "Solicitud enviada a Compras exitosamente."), GestorIdioma.GetInstance.TraducirMensaje("msg_TituloExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 listaSolicitudActual.Clear();
                 ActualizarGrillaSolicitud();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error al confirmar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, GestorIdioma.GetInstance.TraducirMensaje("msg_TituloError", "Error al confirmar"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
