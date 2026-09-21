@@ -41,7 +41,7 @@
             dgvInventario.AllowUserToAddRows = false;
             dgvInventario.AllowUserToDeleteRows = false;
             dgvInventario.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvInventario.Location = new Point(12, 41);
+            dgvInventario.Location = new Point(12, 59);
             dgvInventario.Name = "dgvInventario";
             dgvInventario.ReadOnly = true;
             dgvInventario.Size = new Size(409, 248);
@@ -53,7 +53,7 @@
             dgvSolicitud.AllowUserToAddRows = false;
             dgvSolicitud.AllowUserToDeleteRows = false;
             dgvSolicitud.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvSolicitud.Location = new Point(508, 41);
+            dgvSolicitud.Location = new Point(508, 59);
             dgvSolicitud.Name = "dgvSolicitud";
             dgvSolicitud.ReadOnly = true;
             dgvSolicitud.Size = new Size(417, 245);
@@ -61,7 +61,7 @@
             // 
             // Agregar
             // 
-            Agregar.Location = new Point(931, 41);
+            Agregar.Location = new Point(931, 59);
             Agregar.Name = "Agregar";
             Agregar.Size = new Size(91, 29);
             Agregar.TabIndex = 2;
@@ -71,7 +71,7 @@
             // 
             // btn_Solicitud_Abastecimiento
             // 
-            btn_Solicitud_Abastecimiento.Location = new Point(636, 292);
+            btn_Solicitud_Abastecimiento.Location = new Point(636, 310);
             btn_Solicitud_Abastecimiento.Name = "btn_Solicitud_Abastecimiento";
             btn_Solicitud_Abastecimiento.Size = new Size(129, 34);
             btn_Solicitud_Abastecimiento.TabIndex = 3;

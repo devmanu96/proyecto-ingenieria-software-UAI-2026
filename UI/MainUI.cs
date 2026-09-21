@@ -20,6 +20,12 @@ namespace UI
             this.IsMdiContainer = true;
             GestorIdioma.GetInstance.Attach(this);
 
+            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            comboIdiomasGlobal.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+            this.IsMdiContainer = true;
+            GestorIdioma.GetInstance.Attach(this);
+
             // Ocultamos todos los menús superiores al arrancar, excepto Inicio
             foreach (ToolStripItem item in menuStrip1.Items)
             {
@@ -245,6 +251,12 @@ namespace UI
 
             // Usamos el método que ya tenés en MainUI para cargarlo como hijo MDI
             cargarFormulario(formSolicitud);
+        }
+
+        private void comprasToolStripMenuItemEmitirOC_Click(object sender, EventArgs e)
+        {
+            UI.Compras.BandejaSolicitudesUI formBandeja = new UI.Compras.BandejaSolicitudesUI();
+            cargarFormulario(formBandeja);
         }
     }
 }

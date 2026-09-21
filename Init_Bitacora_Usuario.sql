@@ -718,3 +718,54 @@ VALUES (
     (SELECT ID FROM Usuario WHERE Username = 'analista1'), 
     (SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1)
 );
+
+
+-- 2. Creamos la tabla con la estructura correcta para manejar Pallets
+CREATE TABLE [dbo].[CATALOGO_PROVEEDOR] (
+    [IdProveedor] INT FOREIGN KEY REFERENCES [PROVEEDOR]([IdProveedor]),
+    [IdProducto] VARCHAR(50), -- Se ajusta a VARCHAR(50) para coincidir con tu tabla PRODUCTO
+    [NombreArticuloProveedor] VARCHAR(100), 
+    [PrecioPallet] DECIMAL(12,2) NOT NULL,  
+    [UnidadesPorPallet] INT NOT NULL,       
+    PRIMARY KEY ([IdProveedor], [IdProducto])
+);
+GO
+
+---------------------------------------------------------------------------------------------------------------------
+INSERT INTO [dbo].[PROVEEDOR] ([CUIT], [RazonSocial], [CondicionComercial], [Activo])
+VALUES 
+    ('30-50673003-8', 'Coca-Cola FEMSA', 'Fábrica Directa', 1),
+    ('30-53758070-1', 'PepsiCo Argentina', 'Fábrica Directa', 1),
+    ('30-70894042-7', 'Refres Now S.A. (Manaos)', 'Fábrica Directa', 1),
+    ('30-50013003-4', 'RPB S.A. (Baggio)', 'Fábrica Directa', 1);
+
+
+-- 1. Agregamos los productos faltantes a tu tabla principal para que el Almacén los reconozca
+INSERT INTO [dbo].[PRODUCTO] ([IdProducto], [CodigoSKU], [NombreBebida], [PrecioUnitarioLocal], [Activo], [StockActual], [PuntoPedido])
+VALUES 
+('7790895001999', 'SKU-011', 'Coca-Cola Lata 473ml', 1000, 1, 50, 100),
+('7798099881038', 'SKU-012', 'Manaos Pomelo 2.25L', 900, 1, 80, 50),
+('7790503000001', 'SKU-013', 'Baggio Multifruta 1L', 1200, 1, 40, 60),
+('7790503000002', 'SKU-014', 'Baggio Naranja 1L', 1200, 1, 40, 60);
+
+-- 2. Buscamos los IDs reales
+DECLARE @IdCoca INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-50673003-8');
+DECLARE @IdPepsi INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-53758070-1');
+DECLARE @IdManaos INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-70894042-7');
+DECLARE @IdBaggio INT = (SELECT IdProveedor FROM PROVEEDOR WHERE CUIT = '30-50013003-4');
+
+-- 3. Insertamos todo de una sola pasada
+INSERT INTO [dbo].[CATALOGO_PROVEEDOR] ([IdProveedor], [IdProducto], [NombreArticuloProveedor], [PrecioPallet], [UnidadesPorPallet]) 
+VALUES 
+(@IdCoca, '7790895000997', 'Pallet Coca-Cola Original 2.25L (40 packs x 6)', 360000.00, 240),
+(@IdCoca, '7790895001999', 'Pallet Coca-Cola Lata 473ml (100 packs x 6)', 450000.00, 600),
+
+(@IdPepsi, '7791813421112', 'Pallet 7Up Regular 1.5L (60 packs x 6)', 300000.00, 360),
+(@IdPepsi, '7791813421051', 'Pallet Paso de los Toros Pomelo 1.5L (60 packs x 6)', 280000.00, 360),
+
+(@IdManaos, '7798099881014', 'Pallet Manaos Cola 2.25L (50 packs x 6)', 200000.00, 300),
+(@IdManaos, '7798099881021', 'Pallet Manaos Lima Limón 2.25L (50 packs x 6)', 200000.00, 300),
+(@IdManaos, '7798099881038', 'Pallet Manaos Pomelo 2.25L (50 packs x 6)', 200000.00, 300),
+
+(@IdBaggio, '7790503000001', 'Pallet Baggio Multifruta 1L (80 cajas x 8)', 400000.00, 640),
+(@IdBaggio, '7790503000002', 'Pallet Baggio Naranja 1L (80 cajas x 8)', 400000.00, 640);

@@ -1,6 +1,7 @@
 ﻿using BE;
 using System;
 using System.Data;
+using System.Linq;
 
 namespace DAL
 {
@@ -36,7 +37,7 @@ namespace DAL
 
             dao.SubirCambiosBD();
         }
-        
+
         public bool ProductoTieneSolicitudPendiente(string codigoBarra)
         {
             DataSet ds = DAO.GetInstance.ObtenerDataSet();
@@ -57,6 +58,30 @@ namespace DAL
                             idsPendientes.Contains(Convert.ToInt32(row["IdSolicitud"])));
 
             return existeEnPendiente;
+        }
+
+        // =========================================================
+        // NUEVOS MÉTODOS PARA EL MÓDULO DE COMPRAS (BANDEJA DE ENTRADA)
+        // =========================================================
+
+        public DataView ObtenerSolicitudesPendientes()
+        {
+            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["SOLICITUD_ABASTECIMIENTO"];
+            if (dt == null) throw new Exception("La tabla SOLICITUD_ABASTECIMIENTO no está en el DataSet.");
+
+            DataView dv = new DataView(dt);
+            dv.RowFilter = "Estado = 'Pendiente de Compras'";
+            return dv;
+        }
+
+        public DataView ObtenerDetallesPorSolicitud(int idSolicitud)
+        {
+            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["DETALLE_SOLICITUD"];
+            if (dt == null) throw new Exception("La tabla DETALLE_SOLICITUD no está en el DataSet.");
+
+            DataView dv = new DataView(dt);
+            dv.RowFilter = $"IdSolicitud = {idSolicitud}";
+            return dv;
         }
     }
 }

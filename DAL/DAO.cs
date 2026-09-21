@@ -14,13 +14,17 @@ namespace DAL
 
         private DataSet mainDataSet;
 
-        private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud;
-        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud;
+        // Adaptadores
+        private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud, daProveedor, daCatalogoProveedor, daOrdenCompra, daDetalleOC;
+
+        // Constructores de comandos (CommandBuilders)
+        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
 
         private DAO()
         {
             string connectionString = ObtenerStringConexionEnv();
 
+            // 1. Inicializar Adaptadores
             daUsers = new SqlDataAdapter("Select * From Usuario", connectionString);
             daBitacora = new SqlDataAdapter("Select * From Bitacora", connectionString);
             daPermiso = new SqlDataAdapter("Select * From Permiso", connectionString);
@@ -34,6 +38,13 @@ namespace DAL
             daSolicitudAbastecimiento = new SqlDataAdapter("Select * From SOLICITUD_ABASTECIMIENTO", connectionString);
             daDetalleSolicitud = new SqlDataAdapter("Select * From DETALLE_SOLICITUD", connectionString);
 
+            // Nuevas tablas módulo Compras
+            daProveedor = new SqlDataAdapter("Select * From PROVEEDOR", connectionString);
+            daCatalogoProveedor = new SqlDataAdapter("Select * From CATALOGO_PROVEEDOR", connectionString);
+            daOrdenCompra = new SqlDataAdapter("Select * From ORDEN_COMPRA", connectionString);
+            daDetalleOC = new SqlDataAdapter("Select * From DETALLE_OC", connectionString);
+
+            // 2. Configurar MissingSchemaAction
             daUsers.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daBitacora.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daPermiso.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -46,22 +57,19 @@ namespace DAL
             daProducto.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daSolicitudAbastecimiento.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daDetalleSolicitud.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daCatalogoProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daOrdenCompra.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daDetalleOC.MissingSchemaAction = MissingSchemaAction.AddWithKey;
 
-            cbUsers = new SqlCommandBuilder(daUsers);
-            cbBitacora = new SqlCommandBuilder(daBitacora);
-            cbPermiso = new SqlCommandBuilder(daPermiso);
-            cbPermisoRelacion = new SqlCommandBuilder(daPermisoRelacion);
-            cbIdioma = new SqlCommandBuilder(daIdioma);
-            cbTraduccion = new SqlCommandBuilder(daTraduccion);
-            cbPerfilUsuario = new SqlCommandBuilder(daPerfilUsuario);
-
-            mainDataSet = new DataSet("Users");
+            mainDataSet = new DataSet("SistemaGestion");
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 if (conn.State != ConnectionState.Open) throw new Exception("Conexión a base de datos fallida");
 
+                // 3. Cargar Esquemas y Datos
                 CargarTablaConEsquema(daUsers, "Usuario", conn);
                 CargarTablaConEsquema(daBitacora, "Bitacora", conn);
                 CargarTablaConEsquema(daPermiso, "Permiso", conn);
@@ -74,18 +82,29 @@ namespace DAL
                 CargarTablaConEsquema(daProducto, "Producto", conn);
                 CargarTablaConEsquema(daSolicitudAbastecimiento, "SOLICITUD_ABASTECIMIENTO", conn);
                 CargarTablaConEsquema(daDetalleSolicitud, "DETALLE_SOLICITUD", conn);
+                CargarTablaConEsquema(daProveedor, "PROVEEDOR", conn);
+                CargarTablaConEsquema(daCatalogoProveedor, "CATALOGO_PROVEEDOR", conn);
+                CargarTablaConEsquema(daOrdenCompra, "ORDEN_COMPRA", conn);
+                CargarTablaConEsquema(daDetalleOC, "DETALLE_OC", conn);
             }
 
+            // 4. Inicializar CommandBuilders
             cbUsers = new SqlCommandBuilder(daUsers);
             cbBitacora = new SqlCommandBuilder(daBitacora);
             cbPermiso = new SqlCommandBuilder(daPermiso);
             cbPermisoRelacion = new SqlCommandBuilder(daPermisoRelacion);
+            cbIdioma = new SqlCommandBuilder(daIdioma);
+            cbTraduccion = new SqlCommandBuilder(daTraduccion);
             cbPerfilUsuario = new SqlCommandBuilder(daPerfilUsuario);
             cbHistorialUsuario = new SqlCommandBuilder(daHistorialUsuario);
             cbDVV = new SqlCommandBuilder(daDVV);
             cbProducto = new SqlCommandBuilder(daProducto);
             cbSolicitudAbastecimiento = new SqlCommandBuilder(daSolicitudAbastecimiento);
             cbDetalleSolicitud = new SqlCommandBuilder(daDetalleSolicitud);
+            cbProveedor = new SqlCommandBuilder(daProveedor);
+            cbCatalogoProveedor = new SqlCommandBuilder(daCatalogoProveedor);
+            cbOrdenCompra = new SqlCommandBuilder(daOrdenCompra);
+            cbDetalleOC = new SqlCommandBuilder(daDetalleOC);
 
             ConfigurarAutoincrementoGeneral();
             ArmarRelaciones();
@@ -94,9 +113,7 @@ namespace DAL
         private void CargarTablaConEsquema(SqlDataAdapter adapter, string tableName, SqlConnection connection)
         {
             if (adapter.SelectCommand == null)
-            {
                 adapter.SelectCommand = new SqlCommand();
-            }
 
             adapter.SelectCommand.CommandText = $"Select * From {tableName}";
             adapter.SelectCommand.Connection = connection;
@@ -107,39 +124,27 @@ namespace DAL
             if (mainDataSet.Tables[tableName]!.PrimaryKey.Length == 0)
             {
                 if (tableName == "PermisoRelacion")
-                {
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] {
-                        mainDataSet.Tables[tableName]!.Columns["ID_Padre"]!,
-                        mainDataSet.Tables[tableName]!.Columns["ID_Hijo"]!
-                    };
-                }
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Padre"]!, mainDataSet.Tables[tableName]!.Columns["ID_Hijo"]! };
                 else if (tableName == "PerfilUsuario")
-                {
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] {
-                        mainDataSet.Tables[tableName]!.Columns["ID_Usuario"]!,
-                        mainDataSet.Tables[tableName]!.Columns["ID_Perfil"]!
-                    };
-                }
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Usuario"]!, mainDataSet.Tables[tableName]!.Columns["ID_Perfil"]! };
                 else if (tableName == "DVV")
-                {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["NombreTabla"]! };
-                }
                 else if (tableName == "Producto")
-                {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
-                }
                 else if (tableName == "SOLICITUD_ABASTECIMIENTO")
-                {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdSolicitud"]! };
-                }
                 else if (tableName == "DETALLE_SOLICITUD")
-                {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalle"]! };
-                }
+                else if (tableName == "PROVEEDOR")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]! };
+                else if (tableName == "CATALOGO_PROVEEDOR")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]!, mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
+                else if (tableName == "ORDEN_COMPRA")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdOrden"]! };
+                else if (tableName == "DETALLE_OC")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalleOC"]! };
                 else
-                {
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID"]! };
-                }
             }
         }
 
@@ -150,115 +155,58 @@ namespace DAL
             DataTable? dtPerfilUsuario = mainDataSet.Tables["PerfilUsuario"];
             DataTable? dtUsuario = mainDataSet.Tables["Usuario"];
 
-            if (dtPermiso == null || dtPermisoRelacion == null || dtPerfilUsuario == null || dtUsuario == null) throw new Exception("Error en el armado de relaciones DAO");
+            if (dtPermiso != null && dtPermisoRelacion != null)
+            {
+                mainDataSet.Relations.Add(new DataRelation("FK_PermisoRelacion_Padre", dtPermiso.Columns["ID"]!, dtPermisoRelacion.Columns["ID_Padre"]!));
+                mainDataSet.Relations.Add(new DataRelation("FK_PermisoRelacion_Hijo", dtPermiso.Columns["ID"]!, dtPermisoRelacion.Columns["ID_Hijo"]!));
+            }
 
-            DataRelation drPermisoPadre = new DataRelation(
-                "FK_PermisoRelacion_Padre",
-                dtPermiso.Columns["ID"]!,
-                dtPermisoRelacion.Columns["ID_Padre"]!
-            );
-
-            DataRelation drPermisoHijo = new DataRelation(
-                "FK_PermisoRelacion_Hijo",
-                dtPermiso.Columns["ID"]!,
-                dtPermisoRelacion.Columns["ID_Hijo"]!
-            );
-
-            DataRelation drPerfilUsuarioUsuario = new DataRelation(
-                "FK_PerfilUsuarioUsuario",
-                dtUsuario.Columns["ID"]!,
-                dtPerfilUsuario.Columns["ID_Usuario"]!
-            );
-
-            DataRelation drPerfilUsuarioPerfil = new DataRelation(
-                "FK_PerfilUsuarioPerfil",
-                dtPermiso.Columns["ID"]!,
-                dtPerfilUsuario.Columns["ID_Perfil"]!
-            );
-
-            mainDataSet.Relations.Add(drPermisoPadre);
-            mainDataSet.Relations.Add(drPermisoHijo);
+            if (dtUsuario != null && dtPerfilUsuario != null && dtPermiso != null)
+            {
+                mainDataSet.Relations.Add(new DataRelation("FK_PerfilUsuarioUsuario", dtUsuario.Columns["ID"]!, dtPerfilUsuario.Columns["ID_Usuario"]!));
+                mainDataSet.Relations.Add(new DataRelation("FK_PerfilUsuarioPerfil", dtPermiso.Columns["ID"]!, dtPerfilUsuario.Columns["ID_Perfil"]!));
+            }
 
             DataTable? dtIdioma = mainDataSet.Tables["Idioma"];
             DataTable? dtTraduccion = mainDataSet.Tables["Traduccion"];
+            if (dtIdioma != null && dtTraduccion != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_Traduccion_Idioma", dtIdioma.Columns["Codigo"]!, dtTraduccion.Columns["CodigoIdioma"]!));
 
-            if (dtIdioma == null || dtTraduccion == null) throw new Exception("Error en el armado de relaciones DAO para Idiomas");
-
-            DataRelation drIdiomaTraduccion = new DataRelation(
-                "FK_Traduccion_Idioma",
-                dtIdioma.Columns["Codigo"]!,
-                dtTraduccion.Columns["CodigoIdioma"]!
-            );
-
-            mainDataSet.Relations.Add(drIdiomaTraduccion);
-            mainDataSet.Relations.Add(drPerfilUsuarioUsuario);
-            mainDataSet.Relations.Add(drPerfilUsuarioPerfil);
-
-            // Relación Cabecera-Detalle de Solicitudes
+            // Relación Solicitudes
             DataTable? dtSolicitud = mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"];
             DataTable? dtDetalleSol = mainDataSet.Tables["DETALLE_SOLICITUD"];
-
             if (dtSolicitud != null && dtDetalleSol != null)
-            {
-                DataRelation drSolicitudDetalle = new DataRelation(
-                    "FK_DetalleSolicitud_Cabecera",
-                    dtSolicitud.Columns["IdSolicitud"]!,
-                    dtDetalleSol.Columns["IdSolicitud"]!
-                );
-                mainDataSet.Relations.Add(drSolicitudDetalle);
-            }
+                mainDataSet.Relations.Add(new DataRelation("FK_DetalleSolicitud_Cabecera", dtSolicitud.Columns["IdSolicitud"]!, dtDetalleSol.Columns["IdSolicitud"]!));
+
+            // Relación Orden de Compra
+            DataTable? dtOrden = mainDataSet.Tables["ORDEN_COMPRA"];
+            DataTable? dtDetalleOrden = mainDataSet.Tables["DETALLE_OC"];
+            if (dtOrden != null && dtDetalleOrden != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_DetalleOC_Cabecera", dtOrden.Columns["IdOrden"]!, dtDetalleOrden.Columns["IdOrden"]!));
         }
 
         private void ConfigurarAutoincrementoGeneral()
         {
-            if (mainDataSet.Tables.Contains("Bitacora") && mainDataSet.Tables["Bitacora"]!.Columns.Contains("ID"))
-            {
-                DataTable dtBitacora = mainDataSet.Tables["Bitacora"]!;
-                DataColumn columnaIdRegistroBitacora = dtBitacora.Columns["ID"]!;
-                int maxId = dtBitacora.Rows.Count > 0 ? dtBitacora.AsEnumerable().Max(r => r["ID"] == DBNull.Value ? 0 : Convert.ToInt32(r["ID"])) : 0;
-                columnaIdRegistroBitacora.AutoIncrement = true;
-                columnaIdRegistroBitacora.AutoIncrementSeed = maxId + 1;
-                columnaIdRegistroBitacora.AutoIncrementStep = 1;
-            }
+            ConfigurarAutoincrementoTabla("Bitacora", "ID");
+            ConfigurarAutoincrementoTabla("Permiso", "ID");
+            ConfigurarAutoincrementoTabla("Traduccion", "IdTraduccion");
+            ConfigurarAutoincrementoTabla("HistorialUsuario", "ID");
+            ConfigurarAutoincrementoTabla("SOLICITUD_ABASTECIMIENTO", "IdSolicitud");
+            ConfigurarAutoincrementoTabla("PROVEEDOR", "IdProveedor");
+            ConfigurarAutoincrementoTabla("ORDEN_COMPRA", "IdOrden");
+            ConfigurarAutoincrementoTabla("DETALLE_OC", "IdDetalleOC");
+        }
 
-            if (mainDataSet.Tables.Contains("Permiso") && mainDataSet.Tables["Permiso"]!.Columns.Contains("ID"))
+        private void ConfigurarAutoincrementoTabla(string tableName, string columnName)
+        {
+            if (mainDataSet.Tables.Contains(tableName) && mainDataSet.Tables[tableName]!.Columns.Contains(columnName))
             {
-                DataTable dtPermiso = mainDataSet.Tables["Permiso"]!;
-                DataColumn columnaIdRegistroPermiso = dtPermiso.Columns["ID"]!;
-                int maxIdPermiso = dtPermiso.Rows.Count > 0 ? dtPermiso.AsEnumerable().Max(r => r["ID"] == DBNull.Value ? 0 : Convert.ToInt32(r["ID"])) : 0;
-                columnaIdRegistroPermiso.AutoIncrement = true;
-                columnaIdRegistroPermiso.AutoIncrementSeed = maxIdPermiso + 1;
-                columnaIdRegistroPermiso.AutoIncrementStep = 1;
-            }
-
-            if (mainDataSet.Tables.Contains("Traduccion") && mainDataSet.Tables["Traduccion"]!.Columns.Contains("IdTraduccion"))
-            {
-                DataTable dtTraduccion = mainDataSet.Tables["Traduccion"]!;
-                DataColumn colIdTrad = dtTraduccion.Columns["IdTraduccion"]!;
-                int maxIdTrad = dtTraduccion.Rows.Count > 0 ? dtTraduccion.AsEnumerable().Max(r => r["IdTraduccion"] == DBNull.Value ? 0 : Convert.ToInt32(r["IdTraduccion"])) : 0;
-                colIdTrad.AutoIncrement = true;
-                colIdTrad.AutoIncrementSeed = maxIdTrad + 1;
-                colIdTrad.AutoIncrementStep = 1;
-            }
-
-            if (mainDataSet.Tables.Contains("HistorialUsuario") && mainDataSet.Tables["HistorialUsuario"]!.Columns.Contains("ID"))
-            {
-                DataTable dtHistorial = mainDataSet.Tables["HistorialUsuario"]!;
-                DataColumn colIdHistorial = dtHistorial.Columns["ID"]!;
-                int maxIdHistorial = dtHistorial.Rows.Count > 0 ? dtHistorial.AsEnumerable().Max(r => r["ID"] == DBNull.Value ? 0 : Convert.ToInt32(r["ID"])) : 0;
-                colIdHistorial.AutoIncrement = true;
-                colIdHistorial.AutoIncrementSeed = maxIdHistorial + 1;
-                colIdHistorial.AutoIncrementStep = 1;
-            }
-
-            if (mainDataSet.Tables.Contains("SOLICITUD_ABASTECIMIENTO") && mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"]!.Columns.Contains("IdSolicitud"))
-            {
-                DataTable dtSol = mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"]!;
-                DataColumn colIdSol = dtSol.Columns["IdSolicitud"]!;
-                int maxIdSol = dtSol.Rows.Count > 0 ? dtSol.AsEnumerable().Max(r => r["IdSolicitud"] == DBNull.Value ? 0 : Convert.ToInt32(r["IdSolicitud"])) : 0;
-                colIdSol.AutoIncrement = true;
-                colIdSol.AutoIncrementSeed = maxIdSol + 1;
-                colIdSol.AutoIncrementStep = 1;
+                DataTable dt = mainDataSet.Tables[tableName]!;
+                DataColumn col = dt.Columns[columnName]!;
+                int maxId = dt.Rows.Count > 0 ? dt.AsEnumerable().Max(r => r[columnName] == DBNull.Value ? 0 : Convert.ToInt32(r[columnName])) : 0;
+                col.AutoIncrement = true;
+                col.AutoIncrementSeed = maxId + 1;
+                col.AutoIncrementStep = 1;
             }
         }
 
@@ -287,9 +235,7 @@ namespace DAL
             DirectoryInfo? directorioRaiz = new DirectoryInfo(directorioActualDAO);
 
             while (directorioRaiz != null && directorioRaiz.GetFiles("*.sln").Length == 0)
-            {
                 directorioRaiz = directorioRaiz.Parent;
-            }
 
             if (directorioRaiz == null) throw new Exception("Raiz del proyecto no encontrada para cargar archivo de configuración");
 
@@ -323,9 +269,7 @@ namespace DAL
                                 connectionString = ss.GetString();
                         }
                         else if (root.TryGetProperty("SQL_SERVER_CONNECTION_STRING", out JsonElement top) && top.ValueKind == JsonValueKind.String)
-                        {
                             connectionString = top.GetString();
-                        }
                     }
                     catch { }
                 }
@@ -349,103 +293,37 @@ namespace DAL
             {
                 conn.Open();
 
-                daUsers.SelectCommand.Connection = conn;
-                daBitacora.SelectCommand.Connection = conn;
-                daPermiso.SelectCommand.Connection = conn;
-                daPermisoRelacion.SelectCommand.Connection = conn;
-                daIdioma.SelectCommand.Connection = conn;
-                daTraduccion.SelectCommand.Connection = conn;
-                daPerfilUsuario.SelectCommand.Connection = conn;
-                daHistorialUsuario.SelectCommand.Connection = conn;
-                daDVV.SelectCommand.Connection = conn;
-                daProducto.SelectCommand.Connection = conn;
-                daSolicitudAbastecimiento.SelectCommand.Connection = conn;
-                daDetalleSolicitud.SelectCommand.Connection = conn;
+                void PrepararAdaptador(SqlDataAdapter adapter, SqlCommandBuilder builder)
+                {
+                    adapter.SelectCommand.Connection = conn;
+                    adapter.InsertCommand = builder.GetInsertCommand();
+                    adapter.UpdateCommand = builder.GetUpdateCommand();
+                    adapter.DeleteCommand = builder.GetDeleteCommand();
+                    adapter.InsertCommand.Connection = conn;
+                    adapter.UpdateCommand.Connection = conn;
+                    adapter.DeleteCommand.Connection = conn;
+                }
 
-                daUsers.InsertCommand = cbUsers.GetInsertCommand();
-                daUsers.UpdateCommand = cbUsers.GetUpdateCommand();
-                daUsers.DeleteCommand = cbUsers.GetDeleteCommand();
-                daUsers.InsertCommand.Connection = conn;
-                daUsers.UpdateCommand.Connection = conn;
-                daUsers.DeleteCommand.Connection = conn;
+                PrepararAdaptador(daUsers, cbUsers);
+                PrepararAdaptador(daBitacora, cbBitacora);
+                PrepararAdaptador(daPermiso, cbPermiso);
+                PrepararAdaptador(daPermisoRelacion, cbPermisoRelacion);
+                PrepararAdaptador(daIdioma, cbIdioma);
+                PrepararAdaptador(daTraduccion, cbTraduccion);
+                PrepararAdaptador(daPerfilUsuario, cbPerfilUsuario);
+                PrepararAdaptador(daHistorialUsuario, cbHistorialUsuario);
+                PrepararAdaptador(daDVV, cbDVV);
+                PrepararAdaptador(daProducto, cbProducto);
+                PrepararAdaptador(daSolicitudAbastecimiento, cbSolicitudAbastecimiento);
+                PrepararAdaptador(daDetalleSolicitud, cbDetalleSolicitud);
 
-                daBitacora.InsertCommand = cbBitacora.GetInsertCommand();
-                daBitacora.UpdateCommand = cbBitacora.GetUpdateCommand();
-                daBitacora.DeleteCommand = cbBitacora.GetDeleteCommand();
-                daBitacora.InsertCommand.Connection = conn;
-                daBitacora.UpdateCommand.Connection = conn;
-                daBitacora.DeleteCommand.Connection = conn;
+                // Módulo Compras
+                PrepararAdaptador(daProveedor, cbProveedor);
+                PrepararAdaptador(daCatalogoProveedor, cbCatalogoProveedor);
+                PrepararAdaptador(daOrdenCompra, cbOrdenCompra);
+                PrepararAdaptador(daDetalleOC, cbDetalleOC);
 
-                daPermiso.InsertCommand = cbPermiso.GetInsertCommand();
-                daPermiso.UpdateCommand = cbPermiso.GetUpdateCommand();
-                daPermiso.DeleteCommand = cbPermiso.GetDeleteCommand();
-                daPermiso.InsertCommand.Connection = conn;
-                daPermiso.UpdateCommand.Connection = conn;
-                daPermiso.DeleteCommand.Connection = conn;
-
-                daPermisoRelacion.InsertCommand = cbPermisoRelacion.GetInsertCommand();
-                daPermisoRelacion.UpdateCommand = cbPermisoRelacion.GetUpdateCommand();
-                daPermisoRelacion.DeleteCommand = cbPermisoRelacion.GetDeleteCommand();
-                daPermisoRelacion.InsertCommand.Connection = conn;
-                daPermisoRelacion.UpdateCommand.Connection = conn;
-                daPermisoRelacion.DeleteCommand.Connection = conn;
-
-                daIdioma.InsertCommand = cbIdioma.GetInsertCommand();
-                daIdioma.UpdateCommand = cbIdioma.GetUpdateCommand();
-                daIdioma.DeleteCommand = cbIdioma.GetDeleteCommand();
-                daIdioma.InsertCommand.Connection = conn;
-                daIdioma.UpdateCommand.Connection = conn;
-                daIdioma.DeleteCommand.Connection = conn;
-
-                daTraduccion.InsertCommand = cbTraduccion.GetInsertCommand();
-                daTraduccion.UpdateCommand = cbTraduccion.GetUpdateCommand();
-                daTraduccion.DeleteCommand = cbTraduccion.GetDeleteCommand();
-                daTraduccion.InsertCommand.Connection = conn;
-                daTraduccion.UpdateCommand.Connection = conn;
-                daTraduccion.DeleteCommand.Connection = conn;
-
-                daPerfilUsuario.InsertCommand = cbPerfilUsuario.GetInsertCommand();
-                daPerfilUsuario.UpdateCommand = cbPerfilUsuario.GetUpdateCommand();
-                daPerfilUsuario.DeleteCommand = cbPerfilUsuario.GetDeleteCommand();
-                daPerfilUsuario.InsertCommand.Connection = conn;
-                daPerfilUsuario.UpdateCommand.Connection = conn;
-                daPerfilUsuario.DeleteCommand.Connection = conn;
-
-                daHistorialUsuario.InsertCommand = cbHistorialUsuario.GetInsertCommand();
-                daHistorialUsuario.UpdateCommand = cbHistorialUsuario.GetUpdateCommand();
-                daHistorialUsuario.DeleteCommand = cbHistorialUsuario.GetDeleteCommand();
-                daHistorialUsuario.InsertCommand.Connection = conn;
-                daHistorialUsuario.UpdateCommand.Connection = conn;
-                daHistorialUsuario.DeleteCommand.Connection = conn;
-
-                daDVV.InsertCommand = cbDVV.GetInsertCommand();
-                daDVV.UpdateCommand = cbDVV.GetUpdateCommand();
-                daDVV.DeleteCommand = cbDVV.GetDeleteCommand();
-                daDVV.InsertCommand.Connection = conn;
-                daDVV.UpdateCommand.Connection = conn;
-                daDVV.DeleteCommand.Connection = conn;
-
-                daProducto.InsertCommand = cbProducto.GetInsertCommand();
-                daProducto.UpdateCommand = cbProducto.GetUpdateCommand();
-                daProducto.DeleteCommand = cbProducto.GetDeleteCommand();
-                daProducto.InsertCommand.Connection = conn;
-                daProducto.UpdateCommand.Connection = conn;
-                daProducto.DeleteCommand.Connection = conn;
-
-                daSolicitudAbastecimiento.InsertCommand = cbSolicitudAbastecimiento.GetInsertCommand();
-                daSolicitudAbastecimiento.UpdateCommand = cbSolicitudAbastecimiento.GetUpdateCommand();
-                daSolicitudAbastecimiento.DeleteCommand = cbSolicitudAbastecimiento.GetDeleteCommand();
-                daSolicitudAbastecimiento.InsertCommand.Connection = conn;
-                daSolicitudAbastecimiento.UpdateCommand.Connection = conn;
-                daSolicitudAbastecimiento.DeleteCommand.Connection = conn;
-
-                daDetalleSolicitud.InsertCommand = cbDetalleSolicitud.GetInsertCommand();
-                daDetalleSolicitud.UpdateCommand = cbDetalleSolicitud.GetUpdateCommand();
-                daDetalleSolicitud.DeleteCommand = cbDetalleSolicitud.GetDeleteCommand();
-                daDetalleSolicitud.InsertCommand.Connection = conn;
-                daDetalleSolicitud.UpdateCommand.Connection = conn;
-                daDetalleSolicitud.DeleteCommand.Connection = conn;
-
+                // Updates en bloque
                 daUsers.Update(mainDataSet, "Usuario");
                 daBitacora.Update(mainDataSet, "Bitacora");
                 daPermiso.Update(mainDataSet, "Permiso");
@@ -456,8 +334,15 @@ namespace DAL
                 daHistorialUsuario.Update(mainDataSet, "HistorialUsuario");
                 daDVV.Update(mainDataSet, "DVV");
                 daProducto.Update(mainDataSet, "Producto");
+
+                daProveedor.Update(mainDataSet, "PROVEEDOR");
+                daCatalogoProveedor.Update(mainDataSet, "CATALOGO_PROVEEDOR");
+
                 daSolicitudAbastecimiento.Update(mainDataSet, "SOLICITUD_ABASTECIMIENTO");
                 daDetalleSolicitud.Update(mainDataSet, "DETALLE_SOLICITUD");
+
+                daOrdenCompra.Update(mainDataSet, "ORDEN_COMPRA");
+                daDetalleOC.Update(mainDataSet, "DETALLE_OC");
 
                 mainDataSet.AcceptChanges();
             }

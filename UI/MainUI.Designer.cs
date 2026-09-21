@@ -58,7 +58,7 @@
             menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem, menuStripItemAlmacen, menuStripItemCompras, menuStripItemContabilidad });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(1127, 24);
+            menuStrip1.Size = new Size(1140, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -177,8 +177,9 @@
             // comprasToolStripMenuItemEmitirOC
             // 
             comprasToolStripMenuItemEmitirOC.Name = "comprasToolStripMenuItemEmitirOC";
-            comprasToolStripMenuItemEmitirOC.Size = new Size(203, 22);
-            comprasToolStripMenuItemEmitirOC.Text = "Emitir Orden de Compra";
+            comprasToolStripMenuItemEmitirOC.Size = new Size(180, 22);
+            comprasToolStripMenuItemEmitirOC.Text = "Orden de Compra";
+            comprasToolStripMenuItemEmitirOC.Click += comprasToolStripMenuItemEmitirOC_Click;
             // 
             // menuStripItemContabilidad
             // 
@@ -196,7 +197,7 @@
             // comboIdiomasGlobal
             // 
             comboIdiomasGlobal.FormattingEnabled = true;
-            comboIdiomasGlobal.Location = new Point(1064, 42);
+            comboIdiomasGlobal.Location = new Point(1064, 60);
             comboIdiomasGlobal.Name = "comboIdiomasGlobal";
             comboIdiomasGlobal.Size = new Size(63, 23);
             comboIdiomasGlobal.TabIndex = 1;
@@ -205,7 +206,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(1064, 24);
+            label1.Location = new Point(1064, 42);
             label1.Name = "label1";
             label1.Size = new Size(44, 15);
             label1.TabIndex = 2;
@@ -215,7 +216,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1127, 564);
+            ClientSize = new Size(1140, 564);
             Controls.Add(label1);
             Controls.Add(comboIdiomasGlobal);
             Controls.Add(menuStrip1);
