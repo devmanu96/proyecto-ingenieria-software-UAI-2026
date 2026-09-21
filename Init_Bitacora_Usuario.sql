@@ -768,3 +768,156 @@ INSERT INTO CATALOGO_PROVEEDOR (IdProveedor, IdProducto, NombreArticuloProveedor
 (@IdManaos, '7798099881038', 'Pallet Manaos Pomelo 2.25L (50 packs x 6)', 200000.00, 300),
 (@IdBaggio, '7790503000001', 'Pallet Baggio Multifruta 1L (80 cajas x 8)', 400000.00, 640),
 (@IdBaggio, '7790503000002', 'Pallet Baggio Naranja 1L (80 cajas x 8)', 400000.00, 640);
+
+USE DistriuidoraMegaDrink;
+GO
+
+-- ==========================================
+-- TRADUCCIONES AL ESPAÑOL (ES)
+-- ==========================================
+-- Menú MainUI
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'recuperarIntegridadToolStripMenuItem', 'Recuperar integridad');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'menuStripItemAlmacen', 'Almacén');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'almacenToolStripMenuItemGenerarSolicitud', 'Generar Solicitud de Abastecimiento');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'menuStripItemCompras', 'Compras');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'comprasToolStripMenuItemEmitirOC', 'Orden de Compra');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'menuStripItemContabilidad', 'Contabilidad');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'contabilidadToolStripMenuItemEvaluarCotiz', 'Evaluar Cotización');
+
+-- Controles visuales (Mapeo directo por Name)
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'Agregar', 'Agregar');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btn_Solicitud_Abastecimiento', 'Confirmar Solicitud');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'lblSolicitudesPendientes', 'Solicitudes Pendientes de Revisión:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'lblDetalleProductos', 'Productos Requeridos en la Solicitud');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnVolver', 'Volver');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnAtenderSolicitud', 'Atender Solicitud y Emitir Orden');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'lblFaltantesSolicitados', 'FALTANTES SOLICITADOS');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'label2', 'CATÁLOGO PROVEEDORES DIRECTOS');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'label3', 'ORDEN DE COMPRA');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'label4', 'Cantidad Pallets:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'lblTotalOC', 'Total Neto:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnCancelarOC', 'Volver');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnEmitirOrden', 'Emitir Orden Compra');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'btnAgregarCarrito', 'Agregar al Carrito');
+
+-- Textos dinámicos (Grillas y MessageBox)
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_CodigoBarras', 'Código de Barras');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_Producto', 'Producto');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_StockActual', 'Stock Actual');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_PuntoPedido', 'Punto de Pedido');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_ProdFaltante', 'Producto Faltante');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_CantSugerida', 'Cant. Sugerida');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_FechaSol', 'Fecha de Solicitud');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_SolicitadoPor', 'Solicitado por');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_NumSolicitud', 'N° Solicitud');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'grid_SKU', 'SKU / Código');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_Atencion', 'Atención');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_SeleccioneProdAbastecimiento', 'Por favor, seleccione un producto del inventario que necesite reabastecimiento.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_ProdYaEnFaltantes', 'Este producto ya está en la lista actual de faltantes.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_ProdYaEnCompras', 'Este producto ya se encuentra en una solicitud anterior pendiente de revisión por Compras.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_NoHayProductosSolicitar', 'No hay productos en la lista para solicitar.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_SolicitudEnviadaExito', 'Solicitud enviada a Compras exitosamente.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_CantidadMayorCero', 'La cantidad debe ser mayor a 0.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_SeleccioneProdCatalogo', 'Seleccione un producto del catálogo.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_CarritoVacioPallets', 'El carrito está vacío. Agregue pallets antes de emitir la orden.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_Validacion', 'Validación');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_OrdenEmitidaExito', 'Orden de Compra generada y enviada a Contabilidad exitosamente.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('ES', 'msg_ExitoB2B', 'Éxito B2B');
+
+-- ==========================================
+-- TRADUCCIONES AL INGLÉS (EN)
+-- ==========================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'recuperarIntegridadToolStripMenuItem', 'Recover integrity');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'menuStripItemAlmacen', 'Warehouse');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'almacenToolStripMenuItemGenerarSolicitud', 'Generate Supply Request');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'menuStripItemCompras', 'Purchasing');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'comprasToolStripMenuItemEmitirOC', 'Purchase Order');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'menuStripItemContabilidad', 'Accounting');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'contabilidadToolStripMenuItemEvaluarCotiz', 'Evaluate Quote');
+
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'Agregar', 'Add');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btn_Solicitud_Abastecimiento', 'Confirm Request');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'lblSolicitudesPendientes', 'Pending Requests for Review:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'lblDetalleProductos', 'Products Required in Request');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnVolver', 'Back');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnAtenderSolicitud', 'Handle Request & Issue Order');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'lblFaltantesSolicitados', 'REQUESTED SHORTAGES');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'label2', 'DIRECT SUPPLIERS CATALOG');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'label3', 'PURCHASE ORDER');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'label4', 'Pallet Quantity:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'lblTotalOC', 'Net Total:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnCancelarOC', 'Back');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnEmitirOrden', 'Issue Purchase Order');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'btnAgregarCarrito', 'Add to Cart');
+
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_CodigoBarras', 'Barcode');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_Producto', 'Product');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_StockActual', 'Current Stock');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_PuntoPedido', 'Reorder Point');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_ProdFaltante', 'Missing Product');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_CantSugerida', 'Suggested Qty');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_FechaSol', 'Request Date');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_SolicitadoPor', 'Requested by');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_NumSolicitud', 'Request No.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'grid_SKU', 'SKU / Code');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_Atencion', 'Warning');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_SeleccioneProdAbastecimiento', 'Please select an inventory product that needs restocking.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_ProdYaEnFaltantes', 'This product is already in the current shortage list.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_ProdYaEnCompras', 'This product is already in a pending request under Purchasing review.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_NoHayProductosSolicitar', 'No products in the list to request.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_SolicitudEnviadaExito', 'Request successfully sent to Purchasing.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_CantidadMayorCero', 'Quantity must be greater than 0.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_SeleccioneProdCatalogo', 'Select a product from the catalog.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_CarritoVacioPallets', 'Cart is empty. Add pallets before issuing the order.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_Validacion', 'Validation');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_OrdenEmitidaExito', 'Purchase Order successfully generated and sent to Accounting.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('EN', 'msg_ExitoB2B', 'B2B Success');
+
+-- ==========================================
+-- TRADUCCIONES AL PORTUGUÉS (PT)
+-- ==========================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'recuperarIntegridadToolStripMenuItem', 'Recuperar integridade');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'menuStripItemAlmacen', 'Armazém');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'almacenToolStripMenuItemGenerarSolicitud', 'Gerar Solicitação de Abastecimento');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'menuStripItemCompras', 'Compras');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'comprasToolStripMenuItemEmitirOC', 'Ordem de Compra');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'menuStripItemContabilidad', 'Contabilidade');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'contabilidadToolStripMenuItemEvaluarCotiz', 'Avaliar Cotação');
+
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'Agregar', 'Adicionar');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btn_Solicitud_Abastecimiento', 'Confirmar Solicitação');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'lblSolicitudesPendientes', 'Solicitações Pendentes de Revisão:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'lblDetalleProductos', 'Produtos Requeridos na Solicitação');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnVolver', 'Voltar');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnAtenderSolicitud', 'Atender Solicitação e Emitir Ordem');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'lblFaltantesSolicitados', 'FALTAS SOLICITADAS');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'label2', 'CATÁLOGO DE FORNECEDORES DIRETOS');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'label3', 'ORDEM DE COMPRA');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'label4', 'Quantidade de Paletes:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'lblTotalOC', 'Total Líquido:');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnCancelarOC', 'Voltar');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnEmitirOrden', 'Emitir Ordem de Compra');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'btnAgregarCarrito', 'Adicionar ao Carrinho');
+
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_CodigoBarras', 'Código de Barras');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_Producto', 'Produto');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_StockActual', 'Estoque Atual');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_PuntoPedido', 'Ponto de Pedido');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_ProdFaltante', 'Produto Faltante');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_CantSugerida', 'Qtd. Sugerida');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_FechaSol', 'Data da Solicitação');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_SolicitadoPor', 'Solicitado por');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_NumSolicitud', 'N° Solicitação');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'grid_SKU', 'SKU / Código');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_Atencion', 'Atenção');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_SeleccioneProdAbastecimiento', 'Por favor, selecione um produto do estoque que precise de reabastecimento.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_ProdYaEnFaltantes', 'Este produto já está na lista atual de faltas.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_ProdYaEnCompras', 'Este produto já se encontra numa solicitação anterior pendente de revisão por Compras.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_NoHayProductosSolicitar', 'Não há produtos na lista para solicitar.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_SolicitudEnviadaExito', 'Solicitação enviada a Compras com sucesso.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_CantidadMayorCero', 'A quantidade deve ser maior que 0.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_SeleccioneProdCatalogo', 'Selecione um produto do catálogo.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_CarritoVacioPallets', 'O carrinho está vazio. Adicione paletes antes de emitir a ordem.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_Validacion', 'Validação');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_OrdenEmitidaExito', 'Ordem de Compra gerada e enviada à Contabilidade com sucesso.');
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_ExitoB2B', 'Sucesso B2B');
