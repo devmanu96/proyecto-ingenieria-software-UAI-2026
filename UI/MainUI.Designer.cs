@@ -177,7 +177,7 @@
             // comprasToolStripMenuItemEmitirOC
             // 
             comprasToolStripMenuItemEmitirOC.Name = "comprasToolStripMenuItemEmitirOC";
-            comprasToolStripMenuItemEmitirOC.Size = new Size(180, 22);
+            comprasToolStripMenuItemEmitirOC.Size = new Size(169, 22);
             comprasToolStripMenuItemEmitirOC.Text = "Orden de Compra";
             comprasToolStripMenuItemEmitirOC.Click += comprasToolStripMenuItemEmitirOC_Click;
             // 
@@ -191,8 +191,9 @@
             // contabilidadToolStripMenuItemEvaluarCotiz
             // 
             contabilidadToolStripMenuItemEvaluarCotiz.Name = "contabilidadToolStripMenuItemEvaluarCotiz";
-            contabilidadToolStripMenuItemEvaluarCotiz.Size = new Size(171, 22);
+            contabilidadToolStripMenuItemEvaluarCotiz.Size = new Size(180, 22);
             contabilidadToolStripMenuItemEvaluarCotiz.Text = "Evaluar Cotizacion";
+            contabilidadToolStripMenuItemEvaluarCotiz.Click += contabilidadToolStripMenuItemEvaluarCotiz_Click;
             // 
             // comboIdiomasGlobal
             // 

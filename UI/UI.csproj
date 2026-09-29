@@ -14,8 +14,4 @@
     <ProjectReference Include="..\servicios\servicios.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Contabilidad\" />
-  </ItemGroup>
-
 </Project>

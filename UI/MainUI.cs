@@ -105,6 +105,10 @@ namespace UI
         {
             try
             {
+                if (GestorBitacora.GetInstance.ConsultarBitacoraCompleta().Count == 0)
+                {
+                    GestorIntegridad.RecuperarIntegridadDVH();
+                }
                 List<Usuario> corruptos = GestorIntegridad.VerificarIntegridadDVH();
                 bool dvvValido = GestorIntegridad.VerificarIntegridadDVV();
 
@@ -257,6 +261,14 @@ namespace UI
         {
             UI.Compras.BandejaSolicitudesUI formBandeja = new UI.Compras.BandejaSolicitudesUI();
             cargarFormulario(formBandeja);
+        }
+
+        private void contabilidadToolStripMenuItemEvaluarCotiz_Click(object sender, EventArgs e)
+        {
+            UI.Contabilidad.EvaluarCotizacionUI formContabilidad = new UI.Contabilidad.EvaluarCotizacionUI();
+
+            // Lo abrimos usando tu método centralizado para MDI
+            cargarFormulario(formContabilidad);
         }
     }
 }

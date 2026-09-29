@@ -921,3 +921,35 @@ INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_Car
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_Validacion', 'Validação');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_OrdenEmitidaExito', 'Ordem de Compra gerada e enviada à Contabilidade com sucesso.');
 INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES ('PT', 'msg_ExitoB2B', 'Sucesso B2B');
+
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('ES', 'EvaluarCotizacionUI', 'Evaluación de Cotizaciones y Pagos'),
+('ES', 'btnEfectuarPago', 'Efectuar Pago a Proveedor'),
+('ES', 'msg_ExitoContable', 'Éxito Contable'),
+('ES', 'msg_PagoExitoso', 'Transferencia realizada y Orden de Compra saldada.'),
+('ES', 'msg_SeleccioneOrden', 'Seleccione una orden para pagar.'),
+('ES', 'grid_NumOrden', 'N° Orden'),
+('ES', 'grid_FechaEmision', 'Fecha de Emisión'),
+('ES', 'grid_EstadoOC', 'Estado Actual');
+
+-- INGLÉS
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('EN', 'EvaluarCotizacionUI', 'Quote Evaluation and Payments'),
+('EN', 'btnEfectuarPago', 'Make Payment to Supplier'),
+('EN', 'msg_ExitoContable', 'Accounting Success'),
+('EN', 'msg_PagoExitoso', 'Transfer completed and Purchase Order settled.'),
+('EN', 'msg_SeleccioneOrden', 'Select an order to pay.'),
+('EN', 'grid_NumOrden', 'Order No.'),
+('EN', 'grid_FechaEmision', 'Issue Date'),
+('EN', 'grid_EstadoOC', 'Current Status');
+
+-- PORTUGUÉS
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('PT', 'EvaluarCotizacionUI', 'Avaliação de Cotações e Pagamentos'),
+('PT', 'btnEfectuarPago', 'Efetuar Pagamento ao Fornecedor'),
+('PT', 'msg_ExitoContable', 'Sucesso Contábil'),
+('PT', 'msg_PagoExitoso', 'Transferência realizada e Ordem de Compra liquidada.'),
+('PT', 'msg_SeleccioneOrden', 'Selecione uma ordem para pagar.'),
+('PT', 'grid_NumOrden', 'N° Ordem'),
+('PT', 'grid_FechaEmision', 'Data de Emissão'),
+('PT', 'grid_EstadoOC', 'Status Atual');

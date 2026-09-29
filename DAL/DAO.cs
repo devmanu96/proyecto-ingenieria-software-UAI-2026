@@ -17,8 +17,14 @@ namespace DAL
         // Adaptadores
         private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud, daProveedor, daCatalogoProveedor, daOrdenCompra, daDetalleOC;
 
+        // Nuevos Adaptadores Módulo Financiero y Logístico
+        private SqlDataAdapter daPresupuesto, daPagoEmitido, daFacturaProveedor, daRecepcion, daLoteBebida;
+
         // Constructores de comandos (CommandBuilders)
         private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
+
+        // Nuevos CommandBuilders Módulo Financiero y Logístico
+        private SqlCommandBuilder cbPresupuesto, cbPagoEmitido, cbFacturaProveedor, cbRecepcion, cbLoteBebida;
 
         private DAO()
         {
@@ -38,11 +44,18 @@ namespace DAL
             daSolicitudAbastecimiento = new SqlDataAdapter("Select * From SOLICITUD_ABASTECIMIENTO", connectionString);
             daDetalleSolicitud = new SqlDataAdapter("Select * From DETALLE_SOLICITUD", connectionString);
 
-            // Nuevas tablas módulo Compras
+            // Tablas módulo Compras
             daProveedor = new SqlDataAdapter("Select * From PROVEEDOR", connectionString);
             daCatalogoProveedor = new SqlDataAdapter("Select * From CATALOGO_PROVEEDOR", connectionString);
             daOrdenCompra = new SqlDataAdapter("Select * From ORDEN_COMPRA", connectionString);
             daDetalleOC = new SqlDataAdapter("Select * From DETALLE_OC", connectionString);
+
+            // Nuevas tablas Contabilidad y Logística (B2B E-Procurement)
+            daPresupuesto = new SqlDataAdapter("Select * From PRESUPUESTO", connectionString);
+            daPagoEmitido = new SqlDataAdapter("Select * From PAGO_EMITIDO", connectionString);
+            daFacturaProveedor = new SqlDataAdapter("Select * From FACTURA_PROVEEDOR", connectionString);
+            daRecepcion = new SqlDataAdapter("Select * From RECEPCION", connectionString);
+            daLoteBebida = new SqlDataAdapter("Select * From LOTE_BEBIDA", connectionString);
 
             // 2. Configurar MissingSchemaAction
             daUsers.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -61,6 +74,12 @@ namespace DAL
             daCatalogoProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daOrdenCompra.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daDetalleOC.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+
+            daPresupuesto.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daPagoEmitido.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daFacturaProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daRecepcion.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daLoteBebida.MissingSchemaAction = MissingSchemaAction.AddWithKey;
 
             mainDataSet = new DataSet("SistemaGestion");
 
@@ -86,6 +105,12 @@ namespace DAL
                 CargarTablaConEsquema(daCatalogoProveedor, "CATALOGO_PROVEEDOR", conn);
                 CargarTablaConEsquema(daOrdenCompra, "ORDEN_COMPRA", conn);
                 CargarTablaConEsquema(daDetalleOC, "DETALLE_OC", conn);
+
+                CargarTablaConEsquema(daPresupuesto, "PRESUPUESTO", conn);
+                CargarTablaConEsquema(daPagoEmitido, "PAGO_EMITIDO", conn);
+                CargarTablaConEsquema(daFacturaProveedor, "FACTURA_PROVEEDOR", conn);
+                CargarTablaConEsquema(daRecepcion, "RECEPCION", conn);
+                CargarTablaConEsquema(daLoteBebida, "LOTE_BEBIDA", conn);
             }
 
             // 4. Inicializar CommandBuilders
@@ -105,6 +130,12 @@ namespace DAL
             cbCatalogoProveedor = new SqlCommandBuilder(daCatalogoProveedor);
             cbOrdenCompra = new SqlCommandBuilder(daOrdenCompra);
             cbDetalleOC = new SqlCommandBuilder(daDetalleOC);
+
+            cbPresupuesto = new SqlCommandBuilder(daPresupuesto);
+            cbPagoEmitido = new SqlCommandBuilder(daPagoEmitido);
+            cbFacturaProveedor = new SqlCommandBuilder(daFacturaProveedor);
+            cbRecepcion = new SqlCommandBuilder(daRecepcion);
+            cbLoteBebida = new SqlCommandBuilder(daLoteBebida);
 
             ConfigurarAutoincrementoGeneral();
             ArmarRelaciones();
@@ -143,6 +174,16 @@ namespace DAL
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdOrden"]! };
                 else if (tableName == "DETALLE_OC")
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalleOC"]! };
+                else if (tableName == "PRESUPUESTO")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPresupuesto"]! };
+                else if (tableName == "PAGO_EMITIDO")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPago"]! };
+                else if (tableName == "FACTURA_PROVEEDOR")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdFactura"]! };
+                else if (tableName == "RECEPCION")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdRecepcion"]! };
+                else if (tableName == "LOTE_BEBIDA")
+                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdLote"]! };
                 else
                     mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID"]! };
             }
@@ -195,6 +236,11 @@ namespace DAL
             ConfigurarAutoincrementoTabla("PROVEEDOR", "IdProveedor");
             ConfigurarAutoincrementoTabla("ORDEN_COMPRA", "IdOrden");
             ConfigurarAutoincrementoTabla("DETALLE_OC", "IdDetalleOC");
+            ConfigurarAutoincrementoTabla("PRESUPUESTO", "IdPresupuesto");
+            ConfigurarAutoincrementoTabla("PAGO_EMITIDO", "IdPago");
+            ConfigurarAutoincrementoTabla("FACTURA_PROVEEDOR", "IdFactura");
+            ConfigurarAutoincrementoTabla("RECEPCION", "IdRecepcion");
+            ConfigurarAutoincrementoTabla("LOTE_BEBIDA", "IdLote");
         }
 
         private void ConfigurarAutoincrementoTabla(string tableName, string columnName)
@@ -323,6 +369,13 @@ namespace DAL
                 PrepararAdaptador(daOrdenCompra, cbOrdenCompra);
                 PrepararAdaptador(daDetalleOC, cbDetalleOC);
 
+                // Módulo Financiero y Logístico
+                PrepararAdaptador(daPresupuesto, cbPresupuesto);
+                PrepararAdaptador(daPagoEmitido, cbPagoEmitido);
+                PrepararAdaptador(daFacturaProveedor, cbFacturaProveedor);
+                PrepararAdaptador(daRecepcion, cbRecepcion);
+                PrepararAdaptador(daLoteBebida, cbLoteBebida);
+
                 // Updates en bloque
                 daUsers.Update(mainDataSet, "Usuario");
                 daBitacora.Update(mainDataSet, "Bitacora");
@@ -341,8 +394,17 @@ namespace DAL
                 daSolicitudAbastecimiento.Update(mainDataSet, "SOLICITUD_ABASTECIMIENTO");
                 daDetalleSolicitud.Update(mainDataSet, "DETALLE_SOLICITUD");
 
+                daPresupuesto.Update(mainDataSet, "PRESUPUESTO");
+
+                // Actualizamos cabeceras y detalles
                 daOrdenCompra.Update(mainDataSet, "ORDEN_COMPRA");
                 daDetalleOC.Update(mainDataSet, "DETALLE_OC");
+
+                // Actualizamos pagos e info post-venta
+                daPagoEmitido.Update(mainDataSet, "PAGO_EMITIDO");
+                daFacturaProveedor.Update(mainDataSet, "FACTURA_PROVEEDOR");
+                daRecepcion.Update(mainDataSet, "RECEPCION");
+                daLoteBebida.Update(mainDataSet, "LOTE_BEBIDA");
 
                 mainDataSet.AcceptChanges();
             }
