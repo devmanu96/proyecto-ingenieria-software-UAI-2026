@@ -38,13 +38,18 @@ namespace UI.Venta
             this.Load += PuntoVentaUI_Load;
             btnAgregar.Click += btnAgregar_Click;
             btnConfirmarVenta.Click += btnConfirmarVenta_Click;
+
+            // btnQuitar.Click += btnQuitar_Click;  <--- ELIMINA ESTA LÍNEA
+
+            cmbProductos.SelectedIndexChanged += cmbProductos_SelectedIndexChanged;
         }
 
         private void PuntoVentaUI_Load(object? sender, EventArgs e)
         {
+            numCantidad.Minimum = 1;
             CargarClientes();
             CargarInventario();
-            cmbMetodoPago.SelectedIndex = 0;
+            //cmbMetodoPago.SelectedIndex = 0;
         }
 
         private void CargarClientes()
@@ -101,6 +106,12 @@ namespace UI.Venta
             string idProducto = cmbProductos.SelectedValue.ToString();
             int cantidadSolicitada = (int)numCantidad.Value;
 
+            if (cantidadSolicitada <= 0)
+            {
+                MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_CantidadMayorCero", "La cantidad debe ser mayor a 0."), "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             Producto prod = inventarioDisponible.FirstOrDefault(p => p.CodigoBarra == idProducto);
             if (prod == null) return;
 
@@ -152,6 +163,7 @@ namespace UI.Venta
             lblTotalMonto.Text = $"{lblBase} {totalFinal:C2}";
 
             TraducirElementosParticulares(GestorIdioma.GetInstance.IdiomaActual);
+            dgvCarrito.ClearSelection();
         }
 
         private void btnConfirmarVenta_Click(object? sender, EventArgs e)
@@ -197,7 +209,7 @@ namespace UI.Venta
             lblMetodoPago.Text = GestorIdioma.GetInstance.TraducirMensaje("lblMetodoPago", "Método de Pago:");
             btnAgregar.Text = GestorIdioma.GetInstance.TraducirMensaje("btnAgregar", "Agregar al Carrito");
             btnConfirmarVenta.Text = GestorIdioma.GetInstance.TraducirMensaje("btnConfirmarVenta", "Cobrar y Emitir Ticket");
-            
+
             string? seleccionPago = cmbMetodoPago.SelectedItem?.ToString();
             cmbMetodoPago.Items.Clear();
             cmbMetodoPago.Items.Add(GestorIdioma.GetInstance.TraducirMensaje("pago_Efectivo", "Efectivo"));
@@ -205,7 +217,7 @@ namespace UI.Venta
             cmbMetodoPago.Items.Add(GestorIdioma.GetInstance.TraducirMensaje("pago_Debito", "Tarjeta de Débito"));
             cmbMetodoPago.Items.Add(GestorIdioma.GetInstance.TraducirMensaje("pago_Credito", "Tarjeta de Crédito"));
             if (cmbMetodoPago.SelectedIndex == -1) cmbMetodoPago.SelectedIndex = 0;
-            
+
             if (dgvCarrito != null && dgvCarrito.Columns.Count > 0)
             {
                 if (dgvCarrito.Columns.Contains("NombreProducto"))
@@ -217,7 +229,45 @@ namespace UI.Venta
                 if (dgvCarrito.Columns.Contains("Subtotal"))
                     dgvCarrito.Columns["Subtotal"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Subtotal", "Subtotal");
             }
-            
+            if (btnQuitar != null)
+                btnQuitar.Text = GestorIdioma.GetInstance.TraducirMensaje("btnQuitar", "Quitar del Carrito");
+
+        }
+
+        private void btnQuitar_Click(object sender, EventArgs e)
+        {
+            if (dgvCarrito.CurrentRow == null)
+            {
+                string msj = GestorIdioma.GetInstance.TraducirMensaje("msg_SeleccioneItemCarrito", "Seleccione un producto de la grilla para quitar.");
+                string titulo = GestorIdioma.GetInstance.TraducirMensaje("msg_Atencion", "Atención");
+
+                MessageBox.Show(msj, titulo, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Obtenemos el ID del producto de la fila seleccionada (la columna oculta)
+            string? idProducto = dgvCarrito.CurrentRow.Cells["IdProducto"].Value?.ToString();
+
+            if (!string.IsNullOrEmpty(idProducto))
+            {
+                // Buscamos el producto en la lista en memoria y lo eliminamos
+                var itemAQuitar = carrito.FirstOrDefault(x => x.IdProducto == idProducto);
+                if (itemAQuitar != null)
+                {
+                    carrito.Remove(itemAQuitar);
+
+                    // Refrescamos la grilla y el total
+                    ActualizarGrillaCarrito();
+                }
+            }
+        }
+
+        private void cmbProductos_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (numCantidad != null)
+            {
+                numCantidad.Value = 1;
+            }
         }
     }
 }

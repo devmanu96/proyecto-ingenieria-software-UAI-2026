@@ -40,6 +40,7 @@
             cmbMetodoPago = new ComboBox();
             lblTotalMonto = new Label();
             btnConfirmarVenta = new Button();
+            btnQuitar = new Button();
             ((System.ComponentModel.ISupportInitialize)numCantidad).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
             SuspendLayout();
@@ -77,6 +78,7 @@
             cmbProductos.Name = "cmbProductos";
             cmbProductos.Size = new Size(140, 23);
             cmbProductos.TabIndex = 3;
+            cmbProductos.SelectedIndexChanged += cmbProductos_SelectedIndexChanged;
             // 
             // lblCantidad
             // 
@@ -97,11 +99,11 @@
             // 
             // btnAgregar
             // 
-            btnAgregar.Location = new Point(806, 130);
+            btnAgregar.Location = new Point(771, 126);
             btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(85, 31);
+            btnAgregar.Size = new Size(120, 49);
             btnAgregar.TabIndex = 6;
-            btnAgregar.Text = "button1";
+            btnAgregar.Text = "Agregar al carrito";
             btnAgregar.UseVisualStyleBackColor = true;
             // 
             // dgvCarrito
@@ -110,16 +112,18 @@
             dgvCarrito.AllowUserToDeleteRows = false;
             dgvCarrito.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCarrito.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvCarrito.Location = new Point(44, 168);
+            dgvCarrito.Location = new Point(44, 181);
+            dgvCarrito.MultiSelect = false;
             dgvCarrito.Name = "dgvCarrito";
             dgvCarrito.ReadOnly = true;
+            dgvCarrito.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvCarrito.Size = new Size(847, 244);
             dgvCarrito.TabIndex = 7;
             // 
             // lblMetodoPago
             // 
             lblMetodoPago.AutoSize = true;
-            lblMetodoPago.Location = new Point(44, 452);
+            lblMetodoPago.Location = new Point(44, 468);
             lblMetodoPago.Name = "lblMetodoPago";
             lblMetodoPago.Size = new Size(95, 15);
             lblMetodoPago.TabIndex = 8;
@@ -128,7 +132,7 @@
             // cmbMetodoPago
             // 
             cmbMetodoPago.FormattingEnabled = true;
-            cmbMetodoPago.Location = new Point(44, 470);
+            cmbMetodoPago.Location = new Point(44, 486);
             cmbMetodoPago.Name = "cmbMetodoPago";
             cmbMetodoPago.Size = new Size(134, 23);
             cmbMetodoPago.TabIndex = 9;
@@ -138,7 +142,7 @@
             lblTotalMonto.AutoSize = true;
             lblTotalMonto.BackColor = SystemColors.Control;
             lblTotalMonto.Font = new Font("Segoe UI Semibold", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalMonto.Location = new Point(411, 461);
+            lblTotalMonto.Location = new Point(411, 477);
             lblTotalMonto.Name = "lblTotalMonto";
             lblTotalMonto.Size = new Size(143, 30);
             lblTotalMonto.TabIndex = 10;
@@ -147,12 +151,22 @@
             // btnConfirmarVenta
             // 
             btnConfirmarVenta.BackColor = Color.SeaShell;
-            btnConfirmarVenta.Location = new Point(748, 452);
+            btnConfirmarVenta.Location = new Point(748, 468);
             btnConfirmarVenta.Name = "btnConfirmarVenta";
             btnConfirmarVenta.Size = new Size(143, 45);
             btnConfirmarVenta.TabIndex = 11;
             btnConfirmarVenta.Text = "Confirmar Venta";
             btnConfirmarVenta.UseVisualStyleBackColor = false;
+            // 
+            // btnQuitar
+            // 
+            btnQuitar.Location = new Point(391, 431);
+            btnQuitar.Name = "btnQuitar";
+            btnQuitar.Size = new Size(188, 32);
+            btnQuitar.TabIndex = 12;
+            btnQuitar.Text = "Quitar del carrito";
+            btnQuitar.UseVisualStyleBackColor = true;
+            btnQuitar.Click += btnQuitar_Click;
             // 
             // PuntoVentaUI
             // 
@@ -160,6 +174,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(920, 545);
+            Controls.Add(btnQuitar);
             Controls.Add(btnConfirmarVenta);
             Controls.Add(lblTotalMonto);
             Controls.Add(cmbMetodoPago);
@@ -172,8 +187,10 @@
             Controls.Add(lblProducto);
             Controls.Add(cmbClientes);
             Controls.Add(lblCliente);
+            FormBorderStyle = FormBorderStyle.None;
             Name = "PuntoVentaUI";
             Text = "Venta";
+            WindowState = FormWindowState.Maximized;
             ((System.ComponentModel.ISupportInitialize)numCantidad).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).EndInit();
             ResumeLayout(false);
@@ -194,5 +211,6 @@
         private ComboBox cmbMetodoPago;
         private Label lblTotalMonto;
         private Button btnConfirmarVenta;
+        private Button btnQuitar;
     }
 }

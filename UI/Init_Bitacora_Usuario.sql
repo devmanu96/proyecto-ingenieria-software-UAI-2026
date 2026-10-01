@@ -694,6 +694,8 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('ES', 'grid_Estado', 'Estado'),
 ('ES', 'grid_Cantidad', 'Cantidad'),
 ('ES', 'estado_PendienteCompras', 'Pendiente de Compras'),
+('ES', 'btnQuitar', 'Quitar del Carrito'),
+('ES', 'msg_SeleccioneItemCarrito', 'Seleccione un producto de la grilla para quitar.'),
 ('ES', 'lbl_IdiomaGenerador', 'Idioma:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (
@@ -894,6 +896,8 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('EN', 'grid_Estado', 'Status'),
 ('EN', 'grid_Cantidad', 'Quantity'),
 ('EN', 'estado_PendienteCompras', 'Pending Purchasing'),
+('EN', 'btnQuitar', 'Remove from Cart'),
+('EN', 'msg_SeleccioneItemCarrito', 'Select a product from the grid to remove.'),
 ('EN', 'lbl_IdiomaGenerador', 'Language:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (
@@ -1094,6 +1098,8 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('PT', 'grid_Estado', 'Status'),
 ('PT', 'grid_Cantidad', 'Quantidade'),
 ('PT', 'estado_PendienteCompras', 'Pendente de Compras'),
+('PT', 'btnQuitar', 'Remover do Carrinho'),
+('PT', 'msg_SeleccioneItemCarrito', 'Selecione um produto da grade para remover.'),
 ('PT', 'lbl_IdiomaGenerador', 'Idioma:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (
