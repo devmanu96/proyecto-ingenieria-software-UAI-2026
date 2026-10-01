@@ -87,7 +87,7 @@ namespace UI
                     menuStripItemCompras.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-SELECCIONAR-PROD"));
                     menuStripItemContabilidad.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EVALUAR-COTIZ"));
                     // Módulo de Ventas (Agregado)
-                    ventasToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERF-VENDEDOR"));
+                    ventasToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-REALIZAR-VENTA") || p.ValidarPermiso("PERF-VENDEDOR"));
 
                 }
                 else
@@ -280,6 +280,7 @@ namespace UI
         private void realizarVentaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             UI.Venta.PuntoVentaUI formPuntoVenta = new UI.Venta.PuntoVentaUI();
+            cargarFormulario(formPuntoVenta);
         }
     }
 }
