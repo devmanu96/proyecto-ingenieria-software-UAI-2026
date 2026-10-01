@@ -5,6 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
+using Microsoft.Data.SqlClient;
+using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+
 namespace DAL
 {
     public class DAO
@@ -14,17 +21,19 @@ namespace DAL
 
         private DataSet mainDataSet;
 
-        // Adaptadores
+        // Adaptadores Base y Compras
         private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud, daProveedor, daCatalogoProveedor, daOrdenCompra, daDetalleOC;
-
-        // Nuevos Adaptadores Módulo Financiero y Logístico
         private SqlDataAdapter daPresupuesto, daPagoEmitido, daFacturaProveedor, daRecepcion, daLoteBebida;
 
-        // Constructores de comandos (CommandBuilders)
-        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
+        // Nuevos Adaptadores Módulo Ventas
+        private SqlDataAdapter daCliente, daVenta, daDetalleVenta, daCobro;
 
-        // Nuevos CommandBuilders Módulo Financiero y Logístico
+        // Constructores de comandos Base y Compras
+        private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
         private SqlCommandBuilder cbPresupuesto, cbPagoEmitido, cbFacturaProveedor, cbRecepcion, cbLoteBebida;
+
+        // Nuevos CommandBuilders Módulo Ventas
+        private SqlCommandBuilder cbCliente, cbVenta, cbDetalleVenta, cbCobro;
 
         private DAO()
         {
@@ -44,18 +53,21 @@ namespace DAL
             daSolicitudAbastecimiento = new SqlDataAdapter("Select * From SOLICITUD_ABASTECIMIENTO", connectionString);
             daDetalleSolicitud = new SqlDataAdapter("Select * From DETALLE_SOLICITUD", connectionString);
 
-            // Tablas módulo Compras
             daProveedor = new SqlDataAdapter("Select * From PROVEEDOR", connectionString);
             daCatalogoProveedor = new SqlDataAdapter("Select * From CATALOGO_PROVEEDOR", connectionString);
             daOrdenCompra = new SqlDataAdapter("Select * From ORDEN_COMPRA", connectionString);
             daDetalleOC = new SqlDataAdapter("Select * From DETALLE_OC", connectionString);
-
-            // Nuevas tablas Contabilidad y Logística (B2B E-Procurement)
             daPresupuesto = new SqlDataAdapter("Select * From PRESUPUESTO", connectionString);
             daPagoEmitido = new SqlDataAdapter("Select * From PAGO_EMITIDO", connectionString);
             daFacturaProveedor = new SqlDataAdapter("Select * From FACTURA_PROVEEDOR", connectionString);
             daRecepcion = new SqlDataAdapter("Select * From RECEPCION", connectionString);
             daLoteBebida = new SqlDataAdapter("Select * From LOTE_BEBIDA", connectionString);
+
+            // Inicializar Adaptadores Ventas
+            daCliente = new SqlDataAdapter("Select * From CLIENTE", connectionString);
+            daVenta = new SqlDataAdapter("Select * From VENTA", connectionString);
+            daDetalleVenta = new SqlDataAdapter("Select * From DETALLE_VENTA", connectionString);
+            daCobro = new SqlDataAdapter("Select * From COBRO", connectionString);
 
             // 2. Configurar MissingSchemaAction
             daUsers.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -74,12 +86,17 @@ namespace DAL
             daCatalogoProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daOrdenCompra.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daDetalleOC.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-
             daPresupuesto.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daPagoEmitido.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daFacturaProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daRecepcion.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daLoteBebida.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+
+            // MissingSchemaAction Ventas
+            daCliente.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daVenta.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daDetalleVenta.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daCobro.MissingSchemaAction = MissingSchemaAction.AddWithKey;
 
             mainDataSet = new DataSet("SistemaGestion");
 
@@ -105,12 +122,17 @@ namespace DAL
                 CargarTablaConEsquema(daCatalogoProveedor, "CATALOGO_PROVEEDOR", conn);
                 CargarTablaConEsquema(daOrdenCompra, "ORDEN_COMPRA", conn);
                 CargarTablaConEsquema(daDetalleOC, "DETALLE_OC", conn);
-
                 CargarTablaConEsquema(daPresupuesto, "PRESUPUESTO", conn);
                 CargarTablaConEsquema(daPagoEmitido, "PAGO_EMITIDO", conn);
                 CargarTablaConEsquema(daFacturaProveedor, "FACTURA_PROVEEDOR", conn);
                 CargarTablaConEsquema(daRecepcion, "RECEPCION", conn);
                 CargarTablaConEsquema(daLoteBebida, "LOTE_BEBIDA", conn);
+
+                // Cargar Esquemas Ventas
+                CargarTablaConEsquema(daCliente, "CLIENTE", conn);
+                CargarTablaConEsquema(daVenta, "VENTA", conn);
+                CargarTablaConEsquema(daDetalleVenta, "DETALLE_VENTA", conn);
+                CargarTablaConEsquema(daCobro, "COBRO", conn);
             }
 
             // 4. Inicializar CommandBuilders
@@ -130,12 +152,17 @@ namespace DAL
             cbCatalogoProveedor = new SqlCommandBuilder(daCatalogoProveedor);
             cbOrdenCompra = new SqlCommandBuilder(daOrdenCompra);
             cbDetalleOC = new SqlCommandBuilder(daDetalleOC);
-
             cbPresupuesto = new SqlCommandBuilder(daPresupuesto);
             cbPagoEmitido = new SqlCommandBuilder(daPagoEmitido);
             cbFacturaProveedor = new SqlCommandBuilder(daFacturaProveedor);
             cbRecepcion = new SqlCommandBuilder(daRecepcion);
             cbLoteBebida = new SqlCommandBuilder(daLoteBebida);
+
+            // CommandBuilders Ventas
+            cbCliente = new SqlCommandBuilder(daCliente);
+            cbVenta = new SqlCommandBuilder(daVenta);
+            cbDetalleVenta = new SqlCommandBuilder(daDetalleVenta);
+            cbCobro = new SqlCommandBuilder(daCobro);
 
             ConfigurarAutoincrementoGeneral();
             ArmarRelaciones();
@@ -154,43 +181,32 @@ namespace DAL
 
             if (mainDataSet.Tables[tableName]!.PrimaryKey.Length == 0)
             {
-                if (tableName == "PermisoRelacion")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Padre"]!, mainDataSet.Tables[tableName]!.Columns["ID_Hijo"]! };
-                else if (tableName == "PerfilUsuario")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Usuario"]!, mainDataSet.Tables[tableName]!.Columns["ID_Perfil"]! };
-                else if (tableName == "DVV")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["NombreTabla"]! };
-                else if (tableName == "Producto")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
-                else if (tableName == "SOLICITUD_ABASTECIMIENTO")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdSolicitud"]! };
-                else if (tableName == "DETALLE_SOLICITUD")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalle"]! };
-                else if (tableName == "PROVEEDOR")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]! };
-                else if (tableName == "CATALOGO_PROVEEDOR")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]!, mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
-                else if (tableName == "ORDEN_COMPRA")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdOrden"]! };
-                else if (tableName == "DETALLE_OC")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalleOC"]! };
-                else if (tableName == "PRESUPUESTO")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPresupuesto"]! };
-                else if (tableName == "PAGO_EMITIDO")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPago"]! };
-                else if (tableName == "FACTURA_PROVEEDOR")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdFactura"]! };
-                else if (tableName == "RECEPCION")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdRecepcion"]! };
-                else if (tableName == "LOTE_BEBIDA")
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdLote"]! };
-                else
-                    mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID"]! };
+                if (tableName == "PermisoRelacion") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Padre"]!, mainDataSet.Tables[tableName]!.Columns["ID_Hijo"]! };
+                else if (tableName == "PerfilUsuario") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID_Usuario"]!, mainDataSet.Tables[tableName]!.Columns["ID_Perfil"]! };
+                else if (tableName == "DVV") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["NombreTabla"]! };
+                else if (tableName == "Producto") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
+                else if (tableName == "SOLICITUD_ABASTECIMIENTO") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdSolicitud"]! };
+                else if (tableName == "DETALLE_SOLICITUD") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalle"]! };
+                else if (tableName == "PROVEEDOR") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]! };
+                else if (tableName == "CATALOGO_PROVEEDOR") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdProveedor"]!, mainDataSet.Tables[tableName]!.Columns["IdProducto"]! };
+                else if (tableName == "ORDEN_COMPRA") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdOrden"]! };
+                else if (tableName == "DETALLE_OC") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalleOC"]! };
+                else if (tableName == "PRESUPUESTO") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPresupuesto"]! };
+                else if (tableName == "PAGO_EMITIDO") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdPago"]! };
+                else if (tableName == "FACTURA_PROVEEDOR") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdFactura"]! };
+                else if (tableName == "RECEPCION") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdRecepcion"]! };
+                else if (tableName == "LOTE_BEBIDA") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdLote"]! };
+                else if (tableName == "CLIENTE") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdCliente"]! };
+                else if (tableName == "VENTA") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdVenta"]! };
+                else if (tableName == "DETALLE_VENTA") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdDetalleVenta"]! };
+                else if (tableName == "COBRO") mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["IdCobro"]! };
+                else mainDataSet.Tables[tableName]!.PrimaryKey = new DataColumn[] { mainDataSet.Tables[tableName]!.Columns["ID"]! };
             }
         }
 
         private void ArmarRelaciones()
         {
+            // Base Relaciones
             DataTable? dtPermiso = mainDataSet.Tables["Permiso"];
             DataTable? dtPermisoRelacion = mainDataSet.Tables["PermisoRelacion"];
             DataTable? dtPerfilUsuario = mainDataSet.Tables["PerfilUsuario"];
@@ -213,17 +229,34 @@ namespace DAL
             if (dtIdioma != null && dtTraduccion != null)
                 mainDataSet.Relations.Add(new DataRelation("FK_Traduccion_Idioma", dtIdioma.Columns["Codigo"]!, dtTraduccion.Columns["CodigoIdioma"]!));
 
-            // Relación Solicitudes
+            // Relaciones Compras
             DataTable? dtSolicitud = mainDataSet.Tables["SOLICITUD_ABASTECIMIENTO"];
             DataTable? dtDetalleSol = mainDataSet.Tables["DETALLE_SOLICITUD"];
             if (dtSolicitud != null && dtDetalleSol != null)
                 mainDataSet.Relations.Add(new DataRelation("FK_DetalleSolicitud_Cabecera", dtSolicitud.Columns["IdSolicitud"]!, dtDetalleSol.Columns["IdSolicitud"]!));
 
-            // Relación Orden de Compra
             DataTable? dtOrden = mainDataSet.Tables["ORDEN_COMPRA"];
             DataTable? dtDetalleOrden = mainDataSet.Tables["DETALLE_OC"];
             if (dtOrden != null && dtDetalleOrden != null)
                 mainDataSet.Relations.Add(new DataRelation("FK_DetalleOC_Cabecera", dtOrden.Columns["IdOrden"]!, dtDetalleOrden.Columns["IdOrden"]!));
+
+            // Relaciones Ventas
+            DataTable? dtCliente = mainDataSet.Tables["CLIENTE"];
+            DataTable? dtVenta = mainDataSet.Tables["VENTA"];
+            DataTable? dtDetalleVenta = mainDataSet.Tables["DETALLE_VENTA"];
+            DataTable? dtCobro = mainDataSet.Tables["COBRO"];
+
+            if (dtCliente != null && dtVenta != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_Venta_Cliente", dtCliente.Columns["IdCliente"]!, dtVenta.Columns["IdCliente"]!));
+
+            if (dtUsuario != null && dtVenta != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_Venta_Usuario", dtUsuario.Columns["ID"]!, dtVenta.Columns["IdUsuario"]!));
+
+            if (dtVenta != null && dtDetalleVenta != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_DetalleVenta_Venta", dtVenta.Columns["IdVenta"]!, dtDetalleVenta.Columns["IdVenta"]!));
+
+            if (dtVenta != null && dtCobro != null)
+                mainDataSet.Relations.Add(new DataRelation("FK_Cobro_Venta", dtVenta.Columns["IdVenta"]!, dtCobro.Columns["IdVenta"]!));
         }
 
         private void ConfigurarAutoincrementoGeneral()
@@ -241,6 +274,12 @@ namespace DAL
             ConfigurarAutoincrementoTabla("FACTURA_PROVEEDOR", "IdFactura");
             ConfigurarAutoincrementoTabla("RECEPCION", "IdRecepcion");
             ConfigurarAutoincrementoTabla("LOTE_BEBIDA", "IdLote");
+
+            // Autoincrementos Ventas
+            ConfigurarAutoincrementoTabla("CLIENTE", "IdCliente");
+            ConfigurarAutoincrementoTabla("VENTA", "IdVenta");
+            ConfigurarAutoincrementoTabla("DETALLE_VENTA", "IdDetalleVenta");
+            ConfigurarAutoincrementoTabla("COBRO", "IdCobro");
         }
 
         private void ConfigurarAutoincrementoTabla(string tableName, string columnName)
@@ -362,21 +401,23 @@ namespace DAL
                 PrepararAdaptador(daProducto, cbProducto);
                 PrepararAdaptador(daSolicitudAbastecimiento, cbSolicitudAbastecimiento);
                 PrepararAdaptador(daDetalleSolicitud, cbDetalleSolicitud);
-
-                // Módulo Compras
                 PrepararAdaptador(daProveedor, cbProveedor);
                 PrepararAdaptador(daCatalogoProveedor, cbCatalogoProveedor);
                 PrepararAdaptador(daOrdenCompra, cbOrdenCompra);
                 PrepararAdaptador(daDetalleOC, cbDetalleOC);
-
-                // Módulo Financiero y Logístico
                 PrepararAdaptador(daPresupuesto, cbPresupuesto);
                 PrepararAdaptador(daPagoEmitido, cbPagoEmitido);
                 PrepararAdaptador(daFacturaProveedor, cbFacturaProveedor);
                 PrepararAdaptador(daRecepcion, cbRecepcion);
                 PrepararAdaptador(daLoteBebida, cbLoteBebida);
 
-                // Updates en bloque
+                // Preparar Adaptadores Ventas
+                PrepararAdaptador(daCliente, cbCliente);
+                PrepararAdaptador(daVenta, cbVenta);
+                PrepararAdaptador(daDetalleVenta, cbDetalleVenta);
+                PrepararAdaptador(daCobro, cbCobro);
+
+                // Updates en bloque respetando jerarquías
                 daUsers.Update(mainDataSet, "Usuario");
                 daBitacora.Update(mainDataSet, "Bitacora");
                 daPermiso.Update(mainDataSet, "Permiso");
@@ -388,23 +429,24 @@ namespace DAL
                 daDVV.Update(mainDataSet, "DVV");
                 daProducto.Update(mainDataSet, "Producto");
 
+                // Maestros y Compras
                 daProveedor.Update(mainDataSet, "PROVEEDOR");
                 daCatalogoProveedor.Update(mainDataSet, "CATALOGO_PROVEEDOR");
-
                 daSolicitudAbastecimiento.Update(mainDataSet, "SOLICITUD_ABASTECIMIENTO");
                 daDetalleSolicitud.Update(mainDataSet, "DETALLE_SOLICITUD");
-
                 daPresupuesto.Update(mainDataSet, "PRESUPUESTO");
-
-                // Actualizamos cabeceras y detalles
                 daOrdenCompra.Update(mainDataSet, "ORDEN_COMPRA");
                 daDetalleOC.Update(mainDataSet, "DETALLE_OC");
-
-                // Actualizamos pagos e info post-venta
                 daPagoEmitido.Update(mainDataSet, "PAGO_EMITIDO");
                 daFacturaProveedor.Update(mainDataSet, "FACTURA_PROVEEDOR");
                 daRecepcion.Update(mainDataSet, "RECEPCION");
                 daLoteBebida.Update(mainDataSet, "LOTE_BEBIDA");
+
+                // Módulo Ventas
+                daCliente.Update(mainDataSet, "CLIENTE");
+                daVenta.Update(mainDataSet, "VENTA");
+                daDetalleVenta.Update(mainDataSet, "DETALLE_VENTA");
+                daCobro.Update(mainDataSet, "COBRO");
 
                 mainDataSet.AcceptChanges();
             }

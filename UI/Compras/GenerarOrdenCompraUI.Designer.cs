@@ -58,6 +58,7 @@
             // 
             dgvFaltantes.AllowUserToAddRows = false;
             dgvFaltantes.AllowUserToDeleteRows = false;
+            dgvFaltantes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvFaltantes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvFaltantes.Location = new Point(12, 81);
             dgvFaltantes.Name = "dgvFaltantes";
@@ -79,6 +80,7 @@
             // 
             dgvCarritoOC.AllowUserToAddRows = false;
             dgvCarritoOC.AllowUserToDeleteRows = false;
+            dgvCarritoOC.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCarritoOC.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCarritoOC.Location = new Point(12, 430);
             dgvCarritoOC.Name = "dgvCarritoOC";
@@ -170,6 +172,7 @@
             // 
             dgvCatalogo.AllowUserToAddRows = false;
             dgvCatalogo.AllowUserToDeleteRows = false;
+            dgvCatalogo.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCatalogo.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCatalogo.Dock = DockStyle.Fill;
             dgvCatalogo.Location = new Point(3, 3);

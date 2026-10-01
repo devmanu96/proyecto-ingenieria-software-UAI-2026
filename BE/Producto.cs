@@ -10,7 +10,13 @@ namespace BE
     {
         public string CodigoBarra { get; set; }
 
+        public string CodigoSKU { get; set; } // Agregado para respetar la BD
+
         public string Nombre { get; set; }
+
+        // Nuevas propiedades requeridas por el Punto de Venta
+        public decimal Precio { get; set; }
+        public bool Activo { get; set; }
 
         // Cantidad física actual en el almacén
         public int StockActual { get; set; }

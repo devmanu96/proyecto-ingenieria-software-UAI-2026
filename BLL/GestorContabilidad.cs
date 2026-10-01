@@ -19,6 +19,26 @@ namespace BLL
             return repositorio.ObtenerOrdenesPendientesPago();
         }
 
+        public DataView ObtenerDetallesPorOrden(int idOrden)
+        {
+            return repositorio.ObtenerDetallesPorOrden(idOrden);
+        }
+
+        public decimal CalcularTotalOrden(int idOrden)
+        {
+            DataView detalles = ObtenerDetallesPorOrden(idOrden);
+            decimal total = 0;
+
+            foreach (DataRowView row in detalles)
+            {
+                int cantidad = Convert.ToInt32(row["CantidadSolicitada"]);
+                decimal precio = Convert.ToDecimal(row["PrecioAcordado"]);
+                total += (cantidad * precio);
+            }
+
+            return total;
+        }
+
         public void ProcesarPago(int idOrden, decimal monto)
         {
             if (monto <= 0) throw new Exception("El monto a transferir debe ser mayor a cero.");

@@ -1,22 +1,21 @@
 ﻿using BE;
 using BLL;
 using servicios;
+using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace UI.Login
 {
     public partial class LoginUI : FormBaseObserver
     {
-
         private GestorLogin gestorLogin;
         public event EventHandler? SesionIniciada;
-        //private RepositorioIdioma repoIdioma = new RepositorioIdioma();
 
         public LoginUI()
         {
             InitializeComponent();
             gestorLogin = new GestorLogin();
-            
         }
 
         private void loginUIButtonIniciarSesion_Click(object sender, EventArgs e)
@@ -55,6 +54,15 @@ namespace UI.Login
                 MessageBox.Show(ex.Message, tituloError, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        
+
+        protected override void TraducirElementosParticulares(string codigoIdioma)
+        {
+            this.Text = GestorIdioma.GetInstance.TraducirMensaje("LoginUI", "Inicio de Sesión");
+            // Adaptá estos nombres a los que tengas en tu LoginUI.Designer.cs
+            // Ejemplo:
+            // if (lblUsuario != null) lblUsuario.Text = GestorIdioma.GetInstance.TraducirMensaje("lbl_Usuario", "Usuario:");
+            // if (lblContrasena != null) lblContrasena.Text = GestorIdioma.GetInstance.TraducirMensaje("lbl_Contrasena", "Contraseña:");
+            // if (loginUIButtonIniciarSesion != null) loginUIButtonIniciarSesion.Text = GestorIdioma.GetInstance.TraducirMensaje("btn_IniciarSesion", "Iniciar Sesión");
+        }
     }
 }

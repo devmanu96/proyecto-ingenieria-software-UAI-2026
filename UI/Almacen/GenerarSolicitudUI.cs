@@ -40,6 +40,10 @@ namespace UI.Almacen
                 listaInventario = gestorProducto.ObtenerInventario();
                 dgvInventario.DataSource = null;
                 dgvInventario.DataSource = listaInventario;
+
+                if (dgvInventario.Columns.Contains("Precio")) dgvInventario.Columns["Precio"].Visible = false;
+                if (dgvInventario.Columns.Contains("Activo")) dgvInventario.Columns["Activo"].Visible = false;
+                if (dgvInventario.Columns.Contains("CodigoSKU")) dgvInventario.Columns["CodigoSKU"].Visible = false;
             }
             catch (Exception ex)
             {
@@ -87,10 +91,7 @@ namespace UI.Almacen
             dgvSolicitud.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             dgvSolicitud.Columns.Add("NombreProducto", "Producto Faltante");
-
-            // CORRECCIÓN: Se añade la columna Cantidad para evitar el NullReferenceException
             dgvSolicitud.Columns.Add("Cantidad", "Cant. Sugerida");
-
             dgvSolicitud.Columns.Add("Fecha", "Fecha de Solicitud");
             dgvSolicitud.Columns.Add("Empleado", "Solicitado por");
         }
@@ -102,14 +103,13 @@ namespace UI.Almacen
 
             foreach (var detalle in listaSolicitudActual)
             {
-                // CORRECCIÓN: Se incluye detalle.CantidadSolicitada en la grilla visual
                 dgvSolicitud.Rows.Add(detalle.Producto.Nombre, detalle.CantidadSolicitada, fechaActual, SessionManager.getInstance.ObtenerUsuarioActivo().Email);
             }
         }
 
         protected override void TraducirElementosParticulares(string codigoIdioma)
         {
-            // CORRECCIÓN SEGURIDAD: Validamos con Contains antes de traducir para evitar crashes
+            this.Text = GestorIdioma.GetInstance.TraducirMensaje("GenerarSolicitudUI", "Generar Solicitud de Abastecimiento");
             if (dgvInventario.Columns.Count > 0)
             {
                 if (dgvInventario.Columns.Contains("CodigoBarra")) dgvInventario.Columns["CodigoBarra"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CodigoBarras", "Código de Barras");
@@ -153,7 +153,6 @@ namespace UI.Almacen
                 return;
             }
 
-            // Cálculo automático de reabastecimiento ideal
             int cantidadCalculada = (prodSeleccionado.PuntoPedido * 2) - prodSeleccionado.StockActual;
             if (cantidadCalculada <= 0) cantidadCalculada = 50;
 
@@ -182,6 +181,10 @@ namespace UI.Almacen
                 nuevaSolicitud.Detalles = listaSolicitudActual;
 
                 gestorSolicitud.GenerarNuevaSolicitud(nuevaSolicitud);
+
+                // LOG BITACORA: Registro de nueva solicitud
+                string username = SessionManager.getInstance.ObtenerUsuarioActivo()?.Username ?? "Sistema";
+                GestorBitacora.GetInstance.Update(username, "LOG_NUEVA_SOLICITUD_ABASTECIMIENTO");
 
                 MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_SolicitudEnviadaExito", "Solicitud enviada a Compras exitosamente."), GestorIdioma.GetInstance.TraducirMensaje("msg_TituloExito", "Éxito"), MessageBoxButtons.OK, MessageBoxIcon.Information);
 

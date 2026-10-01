@@ -19,7 +19,6 @@ namespace UI.Compras
         private OrdenCompra ordenActual;
         private Dictionary<int, int> mapaProveedoresTab;
 
-        // Controles dinámicos para el selector de idioma responsive
         private Label lblIdiomaForm;
         private ComboBox comboIdiomaForm;
 
@@ -32,7 +31,6 @@ namespace UI.Compras
             ordenActual = new OrdenCompra();
             bindingCarrito = new BindingList<DetalleOC>(ordenActual.Detalles);
 
-            // --- CREACIÓN DINÁMICA DEL SELECTOR DE IDIOMAS RESPONSIVE ---
             lblIdiomaForm = new Label();
             lblIdiomaForm.Text = "Idioma";
             lblIdiomaForm.AutoSize = true;
@@ -69,9 +67,7 @@ namespace UI.Compras
 
             this.Controls.Add(lblIdiomaForm);
             this.Controls.Add(comboIdiomaForm);
-            // -------------------------------------------------------------
 
-            // Suscripción de eventos de UI
             this.Load += GenerarOrdenCompraUI_Load;
             this.Resize += (s, e) => ActualizarPosicionIdioma();
 
@@ -96,7 +92,6 @@ namespace UI.Compras
 
         private void GenerarOrdenCompraUI_Load(object? sender, EventArgs e)
         {
-            // 1. Cargar Faltantes cruzando datos con GestorProducto para obtener el Nombre
             GestorProducto gestorProducto = new GestorProducto();
             var inventario = gestorProducto.ObtenerInventario();
             var dvFaltantes = gestorCompras.ObtenerDetallesPorSolicitud(idSolicitudReferencia);
@@ -112,25 +107,24 @@ namespace UI.Compras
                                        }).ToList();
 
             dgvFaltantes.DataSource = detallesFormateados;
-
-            // Renombramos las cabeceras para que la UI se vea profesional
             dgvFaltantes.Columns["IdProducto"].HeaderText = "SKU / Código";
             dgvFaltantes.Columns["NombreProducto"].HeaderText = "Producto Faltante";
             dgvFaltantes.Columns["Cantidad"].HeaderText = "Cant. Sugerida";
             dgvFaltantes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
-            // 2. Cargar Carrito
             dgvCarritoOC.DataSource = bindingCarrito;
             if (dgvCarritoOC.Columns.Contains("IdOrden")) dgvCarritoOC.Columns["IdOrden"].Visible = false;
             if (dgvCarritoOC.Columns.Contains("IdDetalleOC")) dgvCarritoOC.Columns["IdDetalleOC"].Visible = false;
 
-            // 3. Cargar Catálogo B2B
             dvCatalogo = gestorCompras.ObtenerCatalogoB2B();
             dgvCatalogo.DataSource = dvCatalogo;
             dgvCatalogo.ReadOnly = true;
             dgvCatalogo.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
-            // 4. Mapear Tabs y acomodar grilla
+            if (dgvCatalogo.Columns.Contains("Precio")) dgvCatalogo.Columns["Precio"].Visible = false;
+            if (dgvCatalogo.Columns.Contains("Activo")) dgvCatalogo.Columns["Activo"].Visible = false;
+            if (dgvCatalogo.Columns.Contains("CodigoSKU")) dgvCatalogo.Columns["CodigoSKU"].Visible = false;
+
             mapaProveedoresTab = gestorCompras.ObtenerMapaProveedoresTab();
             AcomodarGrillaCatalogo();
             ActualizarTotal();
@@ -209,6 +203,10 @@ namespace UI.Compras
 
                 gestorCompras.EmitirOrdenCompra(ordenActual, idSolicitudReferencia);
 
+                // LOG BITACORA: Registro de Orden Emitida
+                string username = SessionManager.getInstance.ObtenerUsuarioActivo()?.Username ?? "Sistema";
+                GestorBitacora.GetInstance.Update(username, $"LOG_EMISION_OC_SOLICITUD_{idSolicitudReferencia}");
+
                 MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_OrdenEmitidaExito", "Orden de Compra generada..."),
                                 GestorIdioma.GetInstance.TraducirMensaje("msg_ExitoB2B", "Éxito B2B"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
@@ -223,17 +221,37 @@ namespace UI.Compras
         {
             this.Close();
         }
+
         protected override void TraducirElementosParticulares(string codigoIdioma)
         {
+            this.Text = GestorIdioma.GetInstance.TraducirMensaje("GenerarOrdenCompraUI", "Generar Orden de Compra");
+            lblIdiomaForm.Text = GestorIdioma.GetInstance.TraducirMensaje("lbl_IdiomaGenerador", "Idioma");
             if (dgvFaltantes.Columns.Count > 0)
             {
-                if (dgvFaltantes.Columns.Contains("IdProducto")) dgvFaltantes.Columns["IdProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_SKU", "SKU / Código");
-                if (dgvFaltantes.Columns.Contains("NombreProducto")) dgvFaltantes.Columns["NombreProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_ProdFaltante", "Producto Faltante");
-                if (dgvFaltantes.Columns.Contains("Cantidad")) dgvFaltantes.Columns["Cantidad"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CantSugerida", "Cant. Sugerida");
+                if (dgvFaltantes.Columns.Contains("IdProducto")) dgvFaltantes.Columns["IdProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_SKU", "SKU / Code");
+                if (dgvFaltantes.Columns.Contains("NombreProducto")) dgvFaltantes.Columns["NombreProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_ProdFaltante", "Missing Product");
+                if (dgvFaltantes.Columns.Contains("Cantidad")) dgvFaltantes.Columns["Cantidad"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CantSugerida", "Suggested Qty");
+            }
+
+            if (dgvCatalogo.Columns.Count > 0)
+            {
+                if (dgvCatalogo.Columns.Contains("IdProveedor")) dgvCatalogo.Columns["IdProveedor"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_IdProveedor", "Supplier ID");
+
+                if (dgvCatalogo.Columns.Contains("IdProducto")) dgvCatalogo.Columns["IdProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_SKU", "SKU / Code");
+                if (dgvCatalogo.Columns.Contains("NombreArticulo")) dgvCatalogo.Columns["NombreArticulo"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Articulo", "Article");
+                if (dgvCatalogo.Columns.Contains("PrecioPallet")) dgvCatalogo.Columns["PrecioPallet"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_PrecioPallet", "Pallet Price");
+                if (dgvCatalogo.Columns.Contains("UnidadesPorPallet")) dgvCatalogo.Columns["UnidadesPorPallet"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_UnidadesPallet", "Units per Pallet");
+            }
+
+            if (dgvCarritoOC.Columns.Count > 0)
+            {
+                if (dgvCarritoOC.Columns.Contains("IdProducto")) dgvCarritoOC.Columns["IdProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_SKU", "SKU / Code");
+                if (dgvCarritoOC.Columns.Contains("CantidadSolicitada")) dgvCarritoOC.Columns["CantidadSolicitada"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Cantidad", "Quantity");
+                if (dgvCarritoOC.Columns.Contains("PrecioAcordado")) dgvCarritoOC.Columns["PrecioAcordado"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_PrecioAcordado", "Agreed Price");
+                if (dgvCarritoOC.Columns.Contains("Subtotal")) dgvCarritoOC.Columns["Subtotal"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Subtotal", "Subtotal");
             }
 
             ActualizarTotal();
         }
-        
     }
 }

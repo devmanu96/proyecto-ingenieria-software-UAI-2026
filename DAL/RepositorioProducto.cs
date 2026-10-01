@@ -26,7 +26,13 @@ namespace DAL
                 Producto p = new Producto();
 
                 p.CodigoBarra = dr["IdProducto"].ToString() ?? string.Empty;
+                p.CodigoSKU = dr["CodigoSKU"].ToString() ?? string.Empty; // Nuevo
                 p.Nombre = dr["NombreBebida"].ToString() ?? string.Empty;
+
+                // Nuevos campos para Ventas
+                p.Precio = Convert.ToDecimal(dr["PrecioUnitarioLocal"]);
+                p.Activo = Convert.ToBoolean(dr["Activo"]);
+
                 p.StockActual = Convert.ToInt32(dr["StockActual"]);
                 p.PuntoPedido = Convert.ToInt32(dr["PuntoPedido"]);
 

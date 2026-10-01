@@ -16,6 +16,16 @@ namespace DAL
             return dv;
         }
 
+        public DataView ObtenerDetallesPorOrden(int idOrden)
+        {
+            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["DETALLE_OC"];
+            if (dt == null) throw new Exception("La tabla DETALLE_OC no está mapeada en el DAO.");
+
+            DataView dv = new DataView(dt);
+            dv.RowFilter = $"IdOrden = {idOrden}";
+            return dv;
+        }
+
         public void RegistrarPago(PagoEmitido pago)
         {
             DAO dao = DAO.GetInstance;

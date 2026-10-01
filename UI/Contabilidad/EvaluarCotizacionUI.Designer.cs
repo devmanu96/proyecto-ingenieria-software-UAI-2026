@@ -31,7 +31,9 @@
             lblTituloOrdenes = new Label();
             dgvOrdenesPendientes = new DataGridView();
             btnEfectuarPago = new Button();
+            dgvDetalleOrden = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)dgvOrdenesPendientes).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetalleOrden).BeginInit();
             SuspendLayout();
             // 
             // lblTituloOrdenes
@@ -53,24 +55,37 @@
             dgvOrdenesPendientes.Name = "dgvOrdenesPendientes";
             dgvOrdenesPendientes.ReadOnly = true;
             dgvOrdenesPendientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvOrdenesPendientes.Size = new Size(676, 223);
+            dgvOrdenesPendientes.Size = new Size(540, 223);
             dgvOrdenesPendientes.TabIndex = 1;
             // 
             // btnEfectuarPago
             // 
             btnEfectuarPago.BackColor = Color.SeaShell;
-            btnEfectuarPago.Location = new Point(633, 367);
+            btnEfectuarPago.Location = new Point(497, 362);
             btnEfectuarPago.Name = "btnEfectuarPago";
             btnEfectuarPago.Size = new Size(128, 45);
             btnEfectuarPago.TabIndex = 2;
             btnEfectuarPago.Text = "Efectuar Pago a Proveedor";
             btnEfectuarPago.UseVisualStyleBackColor = false;
             // 
+            // dgvDetalleOrden
+            // 
+            dgvDetalleOrden.AllowUserToAddRows = false;
+            dgvDetalleOrden.AllowUserToDeleteRows = false;
+            dgvDetalleOrden.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvDetalleOrden.Location = new Point(675, 119);
+            dgvDetalleOrden.Name = "dgvDetalleOrden";
+            dgvDetalleOrden.ReadOnly = true;
+            dgvDetalleOrden.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvDetalleOrden.Size = new Size(464, 297);
+            dgvDetalleOrden.TabIndex = 3;
+            // 
             // EvaluarCotizacionUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1158, 450);
+            Controls.Add(dgvDetalleOrden);
             Controls.Add(btnEfectuarPago);
             Controls.Add(dgvOrdenesPendientes);
             Controls.Add(lblTituloOrdenes);
@@ -79,6 +94,7 @@
             Text = "Evaluación de Cotizaciones y Pagos";
             WindowState = FormWindowState.Maximized;
             ((System.ComponentModel.ISupportInitialize)dgvOrdenesPendientes).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetalleOrden).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -88,5 +104,6 @@
         private Label lblTituloOrdenes;
         private DataGridView dgvOrdenesPendientes;
         private Button btnEfectuarPago;
+        private DataGridView dgvDetalleOrden;
     }
 }

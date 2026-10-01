@@ -42,6 +42,7 @@
             // 
             dgvSolicitudesPendientes.AllowUserToAddRows = false;
             dgvSolicitudesPendientes.AllowUserToDeleteRows = false;
+            dgvSolicitudesPendientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvSolicitudesPendientes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvSolicitudesPendientes.Location = new Point(27, 61);
             dgvSolicitudesPendientes.MultiSelect = false;
@@ -55,6 +56,7 @@
             // 
             dgvDetalleSolicitud.AllowUserToAddRows = false;
             dgvDetalleSolicitud.AllowUserToDeleteRows = false;
+            dgvDetalleSolicitud.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvDetalleSolicitud.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDetalleSolicitud.Location = new Point(27, 310);
             dgvDetalleSolicitud.MultiSelect = false;

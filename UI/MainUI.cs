@@ -222,6 +222,9 @@ namespace UI
                 string codigoIdioma = action.Split(':')[1];
                 Dictionary<string, string> traducciones = GestorIdioma.GetInstance.ObtenerTraduccionesActuales(codigoIdioma);
                 TranslateServices.TraducirObjeto(this, traducciones);
+
+                // Agregar esta línea para el título del menú principal:
+                this.Text = GestorIdioma.GetInstance.TraducirMensaje("MainUI", "Sistema de gestión");
             }
         }
 

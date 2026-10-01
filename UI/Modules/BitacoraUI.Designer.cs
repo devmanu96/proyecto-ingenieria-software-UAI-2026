@@ -42,7 +42,7 @@
             // 
             dataGridViewRegistrosBitacora.AllowUserToAddRows = false;
             dataGridViewRegistrosBitacora.AllowUserToDeleteRows = false;
-            dataGridViewRegistrosBitacora.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dataGridViewRegistrosBitacora.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewRegistrosBitacora.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewRegistrosBitacora.Location = new Point(73, 83);
             dataGridViewRegistrosBitacora.MultiSelect = false;
