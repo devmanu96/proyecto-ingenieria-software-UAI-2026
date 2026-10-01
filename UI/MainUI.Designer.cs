@@ -50,12 +50,14 @@
             contabilidadToolStripMenuItemEvaluarCotiz = new ToolStripMenuItem();
             comboIdiomasGlobal = new ComboBox();
             label1 = new Label();
+            ventasToolStripMenuItem = new ToolStripMenuItem();
+            realizarVentaToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem, menuStripItemAlmacen, menuStripItemCompras, menuStripItemContabilidad });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem, menuStripItemAlmacen, menuStripItemCompras, menuStripItemContabilidad, ventasToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1140, 24);
@@ -213,6 +215,20 @@
             label1.TabIndex = 2;
             label1.Text = "Idioma";
             // 
+            // ventasToolStripMenuItem
+            // 
+            ventasToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { realizarVentaToolStripMenuItem });
+            ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
+            ventasToolStripMenuItem.Size = new Size(53, 20);
+            ventasToolStripMenuItem.Text = "Ventas";
+            // 
+            // realizarVentaToolStripMenuItem
+            // 
+            realizarVentaToolStripMenuItem.Name = "realizarVentaToolStripMenuItem";
+            realizarVentaToolStripMenuItem.Size = new Size(180, 22);
+            realizarVentaToolStripMenuItem.Text = "Realizar Venta";
+            realizarVentaToolStripMenuItem.Click += realizarVentaToolStripMenuItem_Click;
+            // 
             // MainUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -255,5 +271,7 @@
         private ToolStripMenuItem almacenToolStripMenuItemGenerarSolicitud;
         private ToolStripMenuItem comprasToolStripMenuItemEmitirOC;
         private ToolStripMenuItem contabilidadToolStripMenuItemEvaluarCotiz;
+        private ToolStripMenuItem ventasToolStripMenuItem;
+        private ToolStripMenuItem realizarVentaToolStripMenuItem;
     }
 }

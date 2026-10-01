@@ -437,7 +437,11 @@ INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) VALUES (
     (SELECT ID FROM Usuario WHERE Username = 'analista1'), 
     (SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1));
 
+INSERT INTO Permiso (Nombre, EsPerfil) VALUES ('PERM-REALIZAR-VENTA', 0);
 
+-- Asignar el permiso de venta al perfil PERF-VENDEDOR
+INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES 
+((SELECT ID FROM Permiso WHERE Nombre = 'PERF-VENDEDOR' AND EsPerfil = 1), (SELECT ID FROM Permiso WHERE Nombre = 'PERM-REALIZAR-VENTA' AND EsPerfil = 0));
 ---------------------------------------------------------------------------------------------------------------------
 -- 4. POBLACIÓN DE PRODUCTOS Y PROVEEDORES
 ---------------------------------------------------------------------------------------------------------------------

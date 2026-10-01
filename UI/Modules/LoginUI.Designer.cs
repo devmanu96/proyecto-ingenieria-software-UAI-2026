@@ -38,7 +38,7 @@
             // loginUILabelUsername
             // 
             loginUILabelUsername.AutoSize = true;
-            loginUILabelUsername.Location = new Point(99, 68);
+            loginUILabelUsername.Location = new Point(69, 73);
             loginUILabelUsername.Name = "loginUILabelUsername";
             loginUILabelUsername.Size = new Size(60, 15);
             loginUILabelUsername.TabIndex = 0;
@@ -47,7 +47,7 @@
             // loginUILabelContrasena
             // 
             loginUILabelContrasena.AutoSize = true;
-            loginUILabelContrasena.Location = new Point(92, 111);
+            loginUILabelContrasena.Location = new Point(69, 111);
             loginUILabelContrasena.Name = "loginUILabelContrasena";
             loginUILabelContrasena.Size = new Size(67, 15);
             loginUILabelContrasena.TabIndex = 1;
