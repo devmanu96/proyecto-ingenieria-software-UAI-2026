@@ -41,6 +41,7 @@
             // 
             dataGridViewUsuarios.AllowUserToAddRows = false;
             dataGridViewUsuarios.AllowUserToDeleteRows = false;
+            dataGridViewUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewUsuarios.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewUsuarios.Location = new Point(73, 90);
             dataGridViewUsuarios.MultiSelect = false;
@@ -55,6 +56,7 @@
             // 
             dataGridViewHistorial.AllowUserToAddRows = false;
             dataGridViewHistorial.AllowUserToDeleteRows = false;
+            dataGridViewHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewHistorial.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewHistorial.Location = new Point(627, 90);
             dataGridViewHistorial.MultiSelect = false;

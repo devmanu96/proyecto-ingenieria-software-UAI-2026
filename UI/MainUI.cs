@@ -217,6 +217,29 @@ namespace UI
             BE.Idioma idiomaSeleccionado = (BE.Idioma)comboIdiomasGlobal.SelectedItem;
             GestorIdioma.GetInstance.CambiarIdioma(idiomaSeleccionado.Codigo);
         }
+        private void ActualizarComboIdiomas()
+        {
+            // 1. Desuscribimos el evento temporalmente para evitar disparos accidentales
+            comboIdiomasGlobal.SelectedIndexChanged -= ComboIdiomasGlobal_SelectedIndexChanged;
+
+            // 2. Guardamos el idioma que el usuario tiene seleccionado actualmente
+            object idiomaSeleccionado = comboIdiomasGlobal.SelectedValue;
+
+            // 3. Consultamos la base de datos y recargamos el control
+            comboIdiomasGlobal.DataSource = null;
+            comboIdiomasGlobal.DataSource = GestorIdioma.GetInstance.ObtenerIdiomasDisponibles();
+            comboIdiomasGlobal.DisplayMember = "Nombre";
+            comboIdiomasGlobal.ValueMember = "Codigo";
+
+            // 4. Restauramos la selección que tenía el usuario
+            if (idiomaSeleccionado != null)
+            {
+                comboIdiomasGlobal.SelectedValue = idiomaSeleccionado;
+            }
+
+            // 5. Volvemos a suscribir el evento
+            comboIdiomasGlobal.SelectedIndexChanged += ComboIdiomasGlobal_SelectedIndexChanged;
+        }
 
         public void Update(string username, string action)
         {
@@ -228,6 +251,10 @@ namespace UI
 
                 // Agregar esta línea para el título del menú principal:
                 this.Text = GestorIdioma.GetInstance.TraducirMensaje("MainUI", "Sistema de gestión");
+            }
+            else if (action.StartsWith("LOG_IDIOMA_ADD:"))
+            {
+                ActualizarComboIdiomas();
             }
         }
 

@@ -30,7 +30,8 @@ CREATE TABLE Bitacora (
 CREATE TABLE Permiso (
     ID INT PRIMARY KEY IDENTITY(0,1),
     Nombre VARCHAR(30) NOT NULL UNIQUE,
-    EsPerfil BIT NOT NULL
+    EsPerfil BIT NOT NULL,
+    NivelJerarquico INT NOT NULL DEFAULT 99 -- Se agrega para control de jerarquías
 );
 
 CREATE TABLE PermisoRelacion (
@@ -127,10 +128,10 @@ CREATE TABLE PRESUPUESTO (
 
 CREATE TABLE ORDEN_COMPRA (
     IdOrden INT PRIMARY KEY IDENTITY(1,1),
-    IdPresupuesto INT NOT NULL,
+    IdProveedor INT NOT NULL,
     FechaEmision DATETIME NOT NULL,
     Estado VARCHAR(50) NOT NULL,
-    CONSTRAINT FK_OrdenCompra_Presupuesto FOREIGN KEY (IdPresupuesto) REFERENCES PRESUPUESTO(IdPresupuesto)
+    CONSTRAINT FK_OrdenCompra_Proveedor FOREIGN KEY (IdProveedor) REFERENCES PROVEEDOR(IdProveedor)
 );
 
 CREATE TABLE DETALLE_OC (
@@ -278,35 +279,39 @@ INSERT INTO DVV VALUES (
 );
 
 -- Permisos Base
-INSERT INTO Permiso (Nombre, EsPerfil) VALUES
-('PERM-GESTIONAR-USR', 0),
-('PERM-GESTIONAR-IDM', 0),
-('PERM-DESBLOQUEAR-USR', 0),
-('PERM-GESTIONAR-PERFIL', 0),
-('PERM-CONSULTA-BIT', 0),
-('PERM-GESTIONAR-HISTORIAL', 0),
-('PERM-AGREGAR-IDM', 0),
-('PERF-ADMIN', 1);
+INSERT INTO Permiso (Nombre, EsPerfil, NivelJerarquico) VALUES
+('PERM-GESTIONAR-USR', 0, 99),
+('PERM-GESTIONAR-IDM', 0, 99),
+('PERM-DESBLOQUEAR-USR', 0, 99),
+('PERM-GESTIONAR-PERFIL', 0, 99),
+('PERM-CONSULTA-BIT', 0, 99),
+('PERM-GESTIONAR-HISTORIAL', 0, 99),
+('PERM-AGREGAR-IDM', 0, 99),
+('PERF-ADMIN', 1, 1); -- Nivel 1: Rango máximo
 
--- Permisos Nuevos (Proceso B2B)
-INSERT INTO Permiso (Nombre, EsPerfil) VALUES
-('PERM-ABM-PROD', 0),
-('PERM-GEN-REPORTE', 0),
-('PERM-SELECCIONAR-PROD', 0),
-('PERM-EMITIR-OC', 0),
-('PERM-REG-FACTURA', 0),
-('PERM-EVALUAR-COTIZ', 0),
-('PERM-EFECTUAR-PAGO', 0),
-('PERM-ABM-PROV', 0),
-('PERM-AUDITAR-COMPRA', 0),
-('PERM-GEN-SOLICITUD', 0),
-('PERF-VENDEDOR', 1);
+-- Permisos Nuevos (Proceso B2B) y Perfil Vendedor
+INSERT INTO Permiso (Nombre, EsPerfil, NivelJerarquico) VALUES
+('PERM-ABM-PROD', 0, 99),
+('PERM-GEN-REPORTE', 0, 99),
+('PERM-SELECCIONAR-PROD', 0, 99),
+('PERM-EMITIR-OC', 0, 99),
+('PERM-REG-FACTURA', 0, 99),
+('PERM-EVALUAR-COTIZ', 0, 99),
+('PERM-EFECTUAR-PAGO', 0, 99),
+('PERM-ABM-PROV', 0, 99),
+('PERM-AUDITAR-COMPRA', 0, 99),
+('PERM-GEN-SOLICITUD', 0, 99),
+('PERF-VENDEDOR', 1, 3); -- Nivel 3: Rango operativo
 
 -- Roles Nuevos (Proceso B2B)
-INSERT INTO Permiso (Nombre, EsPerfil) VALUES
-('PERF-ALMACEN', 1),
-('PERF-COMPRAS', 1),
-('PERF-CONTABLE', 1);
+INSERT INTO Permiso (Nombre, EsPerfil, NivelJerarquico) VALUES
+('PERF-ALMACEN', 1, 2), -- Nivel 2: Rango departamental
+('PERF-COMPRAS', 1, 2),
+('PERF-CONTABLE', 1, 2);
+
+-- Permiso de ventas
+INSERT INTO Permiso (Nombre, EsPerfil, NivelJerarquico) VALUES 
+('PERM-REALIZAR-VENTA', 0, 99);
 
 -- Asignación Perfil ADMIN (Base + Nuevos Módulos)
 INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES
@@ -437,7 +442,6 @@ INSERT INTO PerfilUsuario (ID_Usuario, ID_Perfil) VALUES (
     (SELECT ID FROM Usuario WHERE Username = 'analista1'), 
     (SELECT ID FROM Permiso WHERE Nombre = 'PERF-CONTABLE' AND EsPerfil = 1));
 
-INSERT INTO Permiso (Nombre, EsPerfil) VALUES ('PERM-REALIZAR-VENTA', 0);
 
 -- Asignar el permiso de venta al perfil PERF-VENDEDOR
 INSERT INTO PermisoRelacion (ID_Padre, ID_Hijo) VALUES 
@@ -696,6 +700,7 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('ES', 'estado_PendienteCompras', 'Pendiente de Compras'),
 ('ES', 'btnQuitar', 'Quitar del Carrito'),
 ('ES', 'msg_SeleccioneItemCarrito', 'Seleccione un producto de la grilla para quitar.'),
+('ES', 'err_JerarquiaInvalida', 'Un perfil de menor rango ({0}) no puede contener a un perfil de mayor rango ({1}).'),
 ('ES', 'lbl_IdiomaGenerador', 'Idioma:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (
@@ -898,6 +903,7 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('EN', 'estado_PendienteCompras', 'Pending Purchasing'),
 ('EN', 'btnQuitar', 'Remove from Cart'),
 ('EN', 'msg_SeleccioneItemCarrito', 'Select a product from the grid to remove.'),
+('EN', 'err_JerarquiaInvalida', 'A lower-ranking profile ({0}) cannot contain a higher-ranking profile ({1}).'),
 ('EN', 'lbl_IdiomaGenerador', 'Language:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (
@@ -1100,6 +1106,7 @@ SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES
 ('PT', 'estado_PendienteCompras', 'Pendente de Compras'),
 ('PT', 'btnQuitar', 'Remover do Carrinho'),
 ('PT', 'msg_SeleccioneItemCarrito', 'Selecione um produto da grade para remover.'),
+('PT', 'err_JerarquiaInvalida', 'Um perfil de classificação inferior ({0}) não pode conter um perfil de classificação superior ({1}).'),
 ('PT', 'lbl_IdiomaGenerador', 'Idioma:')
 ) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
 WHERE NOT EXISTS (

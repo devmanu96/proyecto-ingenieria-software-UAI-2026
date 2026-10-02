@@ -4,7 +4,7 @@
     {
         public List<Permiso> PermisosAsociados { get; private set; }
 
-        public Perfil(uint id, string nombre) : base(id, nombre)
+        public Perfil(uint id, string nombre, int nivelJerarquico) : base(id, nombre, nivelJerarquico)
         {
             PermisosAsociados = new List<Permiso>();
         }

@@ -87,6 +87,16 @@ namespace UI.Modules
 
                     if (!string.IsNullOrEmpty(key))
                     {
+                        // NUEVA VALIDACIÓN: Verifica si la celda de la nueva traducción está en blanco
+                        if (string.IsNullOrWhiteSpace(nuevoTexto))
+                        {
+                            string msgError = GestorIdioma.GetInstance.TraducirMensaje(
+                                "err_TraduccionesIncompletas",
+                                "Debe completar absolutamente todas las traducciones antes de guardar el nuevo idioma."
+                            );
+                            throw new Exception(msgError); // Esto interrumpe el guardado y envía el mensaje al catch
+                        }
+
                         nuevasTraducciones.Add(key, nuevoTexto);
                     }
                 }

@@ -58,8 +58,10 @@ namespace DAL
                 uint id = Convert.ToUInt32(row["ID"]);
                 string nombre = row["Nombre"].ToString() ?? string.Empty;
                 bool esPerfil = Convert.ToBoolean(row["EsPerfil"]);
+                
+                int nivelJerarquico = Convert.ToInt32(row["NivelJerarquico"]);
 
-                Permiso permiso = esPerfil ? new Perfil(id, nombre) : new PermisoSimple(id, nombre);
+                Permiso permiso = esPerfil ? new Perfil(id, nombre, nivelJerarquico) : new PermisoSimple(id, nombre, nivelJerarquico);
                 if (esPerfil)
                 {
                     perfiles.Add(id, (Perfil)permiso);

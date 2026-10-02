@@ -68,6 +68,17 @@ namespace BLL
                 throw new Exception($"No se encontró el perfil hijo con ID {idPerfilHijo}.");
             }
 
+            // Validar jerarquía de negocio (Un rol menor no puede heredar permisos de un rol mayor)
+            if (perfilHijo.NivelJerarquico < perfilPadre.NivelJerarquico)
+            {
+                string plantillaError = GestorIdioma.GetInstance.TraducirMensaje(
+                    "err_JerarquiaInvalida",
+                    "Un perfil de menor rango ({0}) no puede contener a un perfil de mayor rango ({1})."
+                );
+                string mensajeFinal = string.Format(plantillaError, perfilPadre.Nombre, perfilHijo.Nombre);
+                throw new Exception(mensajeFinal);
+            }
+
             // Validar que no sea auto-referencia
             if (idPerfilPadre == idPerfilHijo)
             {
@@ -94,7 +105,35 @@ namespace BLL
         public void AgregarPerfilAUsuario(string username, uint idPerfil)
         {
             Usuario usuarioSeleccionado = RepositorioUsuarios.GetInstance.ObtenerUsuario(username);
-            if (usuarioSeleccionado.Permisos.Any(p => p.ID == idPerfil)) throw new Exception("El usuario seleccionado ya posee ese perfil");
+
+            if (usuarioSeleccionado.Permisos.Any(p => p.ID == idPerfil))
+                throw new Exception("El usuario seleccionado ya posee ese perfil");
+
+            // Buscamos el permiso que se está intentando asignar
+            List<Permiso> permisosGlobales = repositorioPerfiles.ObtenerPermisos();
+            Permiso? permisoAAsignar = permisosGlobales.FirstOrDefault(p => p.ID == idPerfil);
+
+            if (permisoAAsignar == null)
+                throw new Exception("No se encontró el permiso a asignar.");
+
+            // VALIDACIÓN DE NEGOCIO (Segregación de Funciones): 
+            // Si lo que se intenta asignar es un rol base estructurado (Nivel < 99)
+            if (permisoAAsignar is Perfil && permisoAAsignar.NivelJerarquico < 99)
+            {
+                // Verificamos si el usuario ya tiene algún otro rol base asignado directamente
+                bool tieneRolBase = usuarioSeleccionado.Permisos.Any(p => p is Perfil && p.NivelJerarquico < 99);
+
+                if (tieneRolBase)
+                {
+                    // Lanzamos la excepción con soporte multi-idioma
+                    string msgError = GestorIdioma.GetInstance.TraducirMensaje(
+                        "err_MultiplesPerfiles",
+                        "Incompatibilidad de roles: El usuario ya posee un perfil jerárquico principal asignado. Debe desasignarlo antes de otorgarle uno nuevo."
+                    );
+                    throw new Exception(msgError);
+                }
+            }
+
             repositorioPerfiles.AsociarPerfilAUsuario(usuarioSeleccionado, idPerfil);
             Notificar(ObtenerUsuarioActivo().Username, $"Asignación de perfil a usuario");
         }

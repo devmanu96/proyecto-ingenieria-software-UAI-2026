@@ -37,11 +37,12 @@
             // 
             dataGridViewBloqueados.AllowUserToAddRows = false;
             dataGridViewBloqueados.AllowUserToDeleteRows = false;
+            dataGridViewBloqueados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewBloqueados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewBloqueados.Location = new Point(129, 83);
             dataGridViewBloqueados.Name = "dataGridViewBloqueados";
             dataGridViewBloqueados.ReadOnly = true;
-            dataGridViewBloqueados.Size = new Size(401, 265);
+            dataGridViewBloqueados.Size = new Size(462, 265);
             dataGridViewBloqueados.TabIndex = 0;
             // 
             // btnDesbloquear

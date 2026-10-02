@@ -2,7 +2,7 @@
 {
     public class PermisoSimple : Permiso
     {
-        public PermisoSimple(uint id, string nombre) : base(id, nombre) { }
+        public PermisoSimple(uint id, string nombre, int nivelJerarquico) : base(id, nombre, nivelJerarquico) { }
 
         public override bool ValidarPermiso(string nombrePermiso)
         {
