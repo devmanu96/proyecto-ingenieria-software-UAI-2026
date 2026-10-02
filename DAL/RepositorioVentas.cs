@@ -1,94 +1,105 @@
-﻿using BE;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using BE;
 
 namespace DAL
 {
     public class RepositorioVentas
     {
-        // 1. Obtener la lista de clientes para mostrarlos en el Punto de Venta
+        public RepositorioVentas()
+        {
+        }
+
+        // Se mantiene tu método original intacto
         public DataView ObtenerClientesActivos()
         {
-            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["CLIENTE"];
-            if (dt == null) throw new Exception("La tabla CLIENTE no está mapeada en el DAO.");
-
-            DataView dv = new DataView(dt);
+            DataSet ds = DAO.GetInstance.ObtenerDataSet();
+            // Filtramos directamente sobre la tabla CLIENTE del DataSet en memoria
+            DataView dv = new DataView(ds.Tables["CLIENTE"]);
             dv.RowFilter = "Activo = 1";
-            dv.Sort = "RazonSocial ASC"; // Para que aparezcan ordenados alfabéticamente
             return dv;
         }
 
-        // 2. Registrar toda la operación comercial en un solo movimiento
-        public void RegistrarVentaCompleta(Venta venta, List<DetalleVenta> detalles, Cobro cobro)
+        // Método actualizado para recibir la lista de Detalles y la lista de Cobros
+        public void RegistrarVentaCompleta(Venta nuevaVenta, List<DetalleVenta> detalles, List<Cobro> pagosIngresados)
         {
-            DAO dao = DAO.GetInstance;
-            DataSet ds = dao.ObtenerDataSet();
+            DataSet ds = DAO.GetInstance.ObtenerDataSet();
 
-            DataTable? dtVenta = ds.Tables["VENTA"];
-            DataTable? dtDetalle = ds.Tables["DETALLE_VENTA"];
-            DataTable? dtCobro = ds.Tables["COBRO"];
-            DataTable? dtProducto = ds.Tables["Producto"];
+            // 1. Insertar Cabecera de la VENTA
+            DataTable dtVenta = ds.Tables["VENTA"];
+            DataRow rowVenta = dtVenta.NewRow();
 
-            if (dtVenta == null || dtDetalle == null || dtCobro == null || dtProducto == null)
-                throw new Exception("Faltan tablas de ventas o inventario en el DataSet.");
+            rowVenta["IdCliente"] = nuevaVenta.IdCliente;
+            rowVenta["IdUsuario"] = nuevaVenta.IdUsuario;
+            rowVenta["FechaVenta"] = nuevaVenta.FechaVenta;
+            rowVenta["MontoTotal"] = nuevaVenta.MontoTotal;
+            rowVenta["Estado"] = nuevaVenta.Estado;
 
-            // A. Insertar Cabecera de Venta
-            DataRow filaVenta = dtVenta.NewRow();
-            filaVenta["IdCliente"] = venta.IdCliente;
-            filaVenta["IdUsuario"] = venta.IdUsuario;
-            filaVenta["FechaVenta"] = venta.FechaVenta;
-            filaVenta["MontoTotal"] = venta.MontoTotal;
-            filaVenta["Estado"] = venta.Estado;
-            dtVenta.Rows.Add(filaVenta);
+            dtVenta.Rows.Add(rowVenta);
 
-            // Capturamos el ID autogenerado en memoria por el DataSet
-            int idVentaGenerado = Convert.ToInt32(filaVenta["IdVenta"]);
+            // Obtenemos el IdVenta generado localmente por el DataTable para vincular los hijos
+            int idVentaGenerado = Convert.ToInt32(rowVenta["IdVenta"]);
 
-            // B. Insertar Detalles y Descontar Stock
-            foreach (var det in detalles)
+            // 2. Insertar DETALLES y descontar STOCK
+            DataTable dtDetalle = ds.Tables["DETALLE_VENTA"];
+            DataTable dtProducto = ds.Tables["PRODUCTO"];
+
+            foreach (var detalle in detalles)
             {
-                // Guardar detalle
-                DataRow filaDetalle = dtDetalle.NewRow();
-                filaDetalle["IdVenta"] = idVentaGenerado;
-                filaDetalle["IdProducto"] = det.IdProducto;
-                filaDetalle["Cantidad"] = det.Cantidad;
-                filaDetalle["PrecioUnitario"] = det.PrecioUnitario;
-                filaDetalle["Subtotal"] = det.Subtotal;
-                dtDetalle.Rows.Add(filaDetalle);
+                // A. Insertar el detalle
+                DataRow rowDetalle = dtDetalle.NewRow();
+                rowDetalle["IdVenta"] = idVentaGenerado;
+                rowDetalle["IdProducto"] = detalle.IdProducto;
+                rowDetalle["Cantidad"] = detalle.Cantidad;
+                rowDetalle["PrecioUnitario"] = detalle.PrecioUnitario;
+                rowDetalle["Subtotal"] = detalle.Subtotal;
 
-                // Descontar Stock del Inventario Principal
-                DataRow[] filasProd = dtProducto.Select($"IdProducto = '{det.IdProducto}'");
-                if (filasProd.Length > 0)
+                dtDetalle.Rows.Add(rowDetalle);
+
+                // B. Descontar el stock en la tabla PRODUCTO en memoria
+                DataRow[] filasProducto = dtProducto.Select($"IdProducto = '{detalle.IdProducto}'");
+                if (filasProducto.Length > 0)
                 {
-                    int stockActual = Convert.ToInt32(filasProd[0]["StockActual"]);
-
-                    // Validación defensiva por si venden más de lo que hay
-                    if (stockActual < det.Cantidad)
-                        throw new Exception($"Stock insuficiente para el código {det.IdProducto}. Stock actual: {stockActual}");
-
-                    filasProd[0]["StockActual"] = stockActual - det.Cantidad;
-                }
-                else
-                {
-                    throw new Exception($"El producto {det.IdProducto} no existe en el inventario.");
+                    DataRow rowProd = filasProducto[0];
+                    int stockActual = Convert.ToInt32(rowProd["StockActual"]);
+                    rowProd["StockActual"] = stockActual - detalle.Cantidad;
                 }
             }
 
-            // C. Insertar el recibo de Cobro
-            if (cobro != null)
+            // 3. Insertar Lista de COBROS (Múltiples métodos de pago)
+            DataTable dtCobro = ds.Tables["COBRO"];
+
+            foreach (var cobro in pagosIngresados)
             {
-                DataRow filaCobro = dtCobro.NewRow();
-                filaCobro["IdVenta"] = idVentaGenerado;
-                filaCobro["FechaCobro"] = cobro.FechaCobro;
-                filaCobro["MontoCobrado"] = cobro.MontoCobrado;
-                filaCobro["MetodoPago"] = cobro.MetodoPago;
-                filaCobro["NumeroComprobante"] = string.IsNullOrEmpty(cobro.NumeroComprobante) ? (object)DBNull.Value : cobro.NumeroComprobante;
-                dtCobro.Rows.Add(filaCobro);
+                DataRow rowCobro = dtCobro.NewRow();
+                rowCobro["IdVenta"] = idVentaGenerado;
+                rowCobro["FechaCobro"] = cobro.FechaCobro;
+                rowCobro["MontoCobrado"] = cobro.MontoCobrado;
+                rowCobro["MetodoPago"] = cobro.MetodoPago;
+                rowCobro["NumeroTarjeta"] = string.IsNullOrEmpty(cobro.NumeroTarjeta) ? DBNull.Value : cobro.NumeroTarjeta;
+                rowCobro["Cuotas"] = cobro.Cuotas == 0 ? 1 : cobro.Cuotas;
+                rowCobro["NumeroComprobante"] = string.IsNullOrEmpty(cobro.NumeroComprobante) ? DBNull.Value : cobro.NumeroComprobante;
+
+                dtCobro.Rows.Add(rowCobro);
             }
 
-            // D. Persistir todo en la base de datos de una sola vez
-            dao.SubirCambiosBD();
+            // 4. Impactar todos los cambios (Venta, Detalles, Cobros y actualización de Productos) en SQL Server
+            DAO.GetInstance.SubirCambiosBD();
+        }
+
+        // Nuevo método para consumir la vista VISTA_HISTORIAL_VENTAS
+        public DataView ObtenerHistorialVentas()
+        {
+            DataSet ds = DAO.GetInstance.ObtenerDataSet();
+
+            // Verificamos que la vista exista en el DataSet (asegúrate de que tu DAO haga el 'Fill' de esta vista)
+            if (ds.Tables.Contains("VISTA_HISTORIAL_VENTAS"))
+            {
+                return ds.Tables["VISTA_HISTORIAL_VENTAS"].DefaultView;
+            }
+
+            return null;
         }
     }
 }

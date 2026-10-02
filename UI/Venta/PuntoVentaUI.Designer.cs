@@ -2,15 +2,8 @@
 {
     partial class PuntoVentaUI
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +15,6 @@
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             lblCliente = new Label();
@@ -41,8 +30,13 @@
             lblTotalMonto = new Label();
             btnConfirmarVenta = new Button();
             btnQuitar = new Button();
+            dgvPagos = new DataGridView();
+            btnAgregarPago = new Button();
+            lblRestante = new Label();
+            btnQuitarPago = new Button();
             ((System.ComponentModel.ISupportInitialize)numCantidad).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvPagos).BeginInit();
             SuspendLayout();
             // 
             // lblCliente
@@ -56,6 +50,7 @@
             // 
             // cmbClientes
             // 
+            cmbClientes.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbClientes.FormattingEnabled = true;
             cmbClientes.Location = new Point(44, 83);
             cmbClientes.Name = "cmbClientes";
@@ -73,12 +68,12 @@
             // 
             // cmbProductos
             // 
+            cmbProductos.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbProductos.FormattingEnabled = true;
             cmbProductos.Location = new Point(414, 83);
             cmbProductos.Name = "cmbProductos";
             cmbProductos.Size = new Size(140, 23);
             cmbProductos.TabIndex = 3;
-            cmbProductos.SelectedIndexChanged += cmbProductos_SelectedIndexChanged;
             // 
             // lblCantidad
             // 
@@ -123,16 +118,17 @@
             // lblMetodoPago
             // 
             lblMetodoPago.AutoSize = true;
-            lblMetodoPago.Location = new Point(44, 468);
+            lblMetodoPago.Location = new Point(44, 480);
             lblMetodoPago.Name = "lblMetodoPago";
             lblMetodoPago.Size = new Size(95, 15);
             lblMetodoPago.TabIndex = 8;
-            lblMetodoPago.Text = "Metodo de Pago";
+            lblMetodoPago.Text = "Método de Pago";
             // 
             // cmbMetodoPago
             // 
+            cmbMetodoPago.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMetodoPago.FormattingEnabled = true;
-            cmbMetodoPago.Location = new Point(44, 486);
+            cmbMetodoPago.Location = new Point(44, 498);
             cmbMetodoPago.Name = "cmbMetodoPago";
             cmbMetodoPago.Size = new Size(134, 23);
             cmbMetodoPago.TabIndex = 9;
@@ -141,8 +137,8 @@
             // 
             lblTotalMonto.AutoSize = true;
             lblTotalMonto.BackColor = SystemColors.Control;
-            lblTotalMonto.Font = new Font("Segoe UI Semibold", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalMonto.Location = new Point(411, 477);
+            lblTotalMonto.Font = new Font("Segoe UI Semibold", 15.75F, FontStyle.Bold);
+            lblTotalMonto.Location = new Point(411, 456);
             lblTotalMonto.Name = "lblTotalMonto";
             lblTotalMonto.Size = new Size(143, 30);
             lblTotalMonto.TabIndex = 10;
@@ -151,29 +147,79 @@
             // btnConfirmarVenta
             // 
             btnConfirmarVenta.BackColor = Color.SeaShell;
-            btnConfirmarVenta.Location = new Point(748, 468);
+            btnConfirmarVenta.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            btnConfirmarVenta.Location = new Point(748, 552);
             btnConfirmarVenta.Name = "btnConfirmarVenta";
-            btnConfirmarVenta.Size = new Size(143, 45);
+            btnConfirmarVenta.Size = new Size(143, 56);
             btnConfirmarVenta.TabIndex = 11;
             btnConfirmarVenta.Text = "Confirmar Venta";
             btnConfirmarVenta.UseVisualStyleBackColor = false;
             // 
             // btnQuitar
             // 
-            btnQuitar.Location = new Point(391, 431);
+            btnQuitar.Location = new Point(44, 431);
             btnQuitar.Name = "btnQuitar";
             btnQuitar.Size = new Size(188, 32);
             btnQuitar.TabIndex = 12;
             btnQuitar.Text = "Quitar del carrito";
             btnQuitar.UseVisualStyleBackColor = true;
-            btnQuitar.Click += btnQuitar_Click;
+            // 
+            // dgvPagos
+            // 
+            dgvPagos.AllowUserToAddRows = false;
+            dgvPagos.AllowUserToDeleteRows = false;
+            dgvPagos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvPagos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvPagos.Location = new Point(44, 532);
+            dgvPagos.MultiSelect = false;
+            dgvPagos.Name = "dgvPagos";
+            dgvPagos.ReadOnly = true;
+            dgvPagos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvPagos.Size = new Size(393, 107);
+            dgvPagos.TabIndex = 13;
+            // 
+            // btnAgregarPago
+            // 
+            btnAgregarPago.BackColor = Color.LightSteelBlue;
+            btnAgregarPago.Location = new Point(195, 491);
+            btnAgregarPago.Name = "btnAgregarPago";
+            btnAgregarPago.Size = new Size(113, 35);
+            btnAgregarPago.TabIndex = 14;
+            btnAgregarPago.Text = "Agregar Pago";
+            btnAgregarPago.UseVisualStyleBackColor = false;
+            btnAgregarPago.Click += btnAgregarPago_Click;
+            // 
+            // lblRestante
+            // 
+            lblRestante.AutoSize = true;
+            lblRestante.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            lblRestante.ForeColor = Color.Crimson;
+            lblRestante.Location = new Point(414, 496);
+            lblRestante.Name = "lblRestante";
+            lblRestante.Size = new Size(196, 21);
+            lblRestante.TabIndex = 15;
+            lblRestante.Text = "SALDO RESTANTE: $ 0.00";
+            // 
+            // btnQuitarPago
+            // 
+            btnQuitarPago.Location = new Point(443, 552);
+            btnQuitarPago.Name = "btnQuitarPago";
+            btnQuitarPago.Size = new Size(111, 35);
+            btnQuitarPago.TabIndex = 16;
+            btnQuitarPago.Text = "Quitar Pago";
+            btnQuitarPago.UseVisualStyleBackColor = true;
             // 
             // PuntoVentaUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoScroll = true;
             BackColor = SystemColors.Control;
-            ClientSize = new Size(920, 545);
+            ClientSize = new Size(920, 680);
+            Controls.Add(btnQuitarPago);
+            Controls.Add(lblRestante);
+            Controls.Add(btnAgregarPago);
+            Controls.Add(dgvPagos);
             Controls.Add(btnQuitar);
             Controls.Add(btnConfirmarVenta);
             Controls.Add(lblTotalMonto);
@@ -193,6 +239,7 @@
             WindowState = FormWindowState.Maximized;
             ((System.ComponentModel.ISupportInitialize)numCantidad).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvPagos).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -212,5 +259,9 @@
         private Label lblTotalMonto;
         private Button btnConfirmarVenta;
         private Button btnQuitar;
+        private DataGridView dgvPagos;
+        private Button btnAgregarPago;
+        private Label lblRestante;
+        private Button btnQuitarPago;
     }
 }

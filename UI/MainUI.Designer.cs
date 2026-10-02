@@ -48,10 +48,12 @@
             comprasToolStripMenuItemEmitirOC = new ToolStripMenuItem();
             menuStripItemContabilidad = new ToolStripMenuItem();
             contabilidadToolStripMenuItemEvaluarCotiz = new ToolStripMenuItem();
-            comboIdiomasGlobal = new ComboBox();
-            label1 = new Label();
             ventasToolStripMenuItem = new ToolStripMenuItem();
             realizarVentaToolStripMenuItem = new ToolStripMenuItem();
+            historialDeVentasToolStripMenuItem = new ToolStripMenuItem();
+            comboIdiomasGlobal = new ComboBox();
+            label1 = new Label();
+            historialDeTicketsPDFToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -60,7 +62,7 @@
             menuStrip1.Items.AddRange(new ToolStripItem[] { mainUIStripMenuItemInicio, mainUIStripMenuItemGestionDeUsuarios, mainUIStripMenuItemGestionDePerfiles, mainUIStripMenuItemBitacora, mainUIStripMenuItemHistorialUsuario, agregarIdiomaToolStripMenuItem, recuperarIntegridadToolStripMenuItem, menuStripItemAlmacen, menuStripItemCompras, menuStripItemContabilidad, ventasToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(1140, 24);
+            menuStrip1.Size = new Size(1200, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -193,9 +195,30 @@
             // contabilidadToolStripMenuItemEvaluarCotiz
             // 
             contabilidadToolStripMenuItemEvaluarCotiz.Name = "contabilidadToolStripMenuItemEvaluarCotiz";
-            contabilidadToolStripMenuItemEvaluarCotiz.Size = new Size(180, 22);
+            contabilidadToolStripMenuItemEvaluarCotiz.Size = new Size(171, 22);
             contabilidadToolStripMenuItemEvaluarCotiz.Text = "Evaluar Cotizacion";
             contabilidadToolStripMenuItemEvaluarCotiz.Click += contabilidadToolStripMenuItemEvaluarCotiz_Click;
+            // 
+            // ventasToolStripMenuItem
+            // 
+            ventasToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { realizarVentaToolStripMenuItem, historialDeVentasToolStripMenuItem, historialDeTicketsPDFToolStripMenuItem });
+            ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
+            ventasToolStripMenuItem.Size = new Size(53, 20);
+            ventasToolStripMenuItem.Text = "Ventas";
+            // 
+            // realizarVentaToolStripMenuItem
+            // 
+            realizarVentaToolStripMenuItem.Name = "realizarVentaToolStripMenuItem";
+            realizarVentaToolStripMenuItem.Size = new Size(180, 22);
+            realizarVentaToolStripMenuItem.Text = "Realizar Venta";
+            realizarVentaToolStripMenuItem.Click += realizarVentaToolStripMenuItem_Click;
+            // 
+            // historialDeVentasToolStripMenuItem
+            // 
+            historialDeVentasToolStripMenuItem.Name = "historialDeVentasToolStripMenuItem";
+            historialDeVentasToolStripMenuItem.Size = new Size(180, 22);
+            historialDeVentasToolStripMenuItem.Text = "Historial de ventas";
+            historialDeVentasToolStripMenuItem.Click += historialDeVentasToolStripMenuItem_Click;
             // 
             // comboIdiomasGlobal
             // 
@@ -215,25 +238,18 @@
             label1.TabIndex = 2;
             label1.Text = "Idioma";
             // 
-            // ventasToolStripMenuItem
+            // historialDeTicketsPDFToolStripMenuItem
             // 
-            ventasToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { realizarVentaToolStripMenuItem });
-            ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
-            ventasToolStripMenuItem.Size = new Size(53, 20);
-            ventasToolStripMenuItem.Text = "Ventas";
-            // 
-            // realizarVentaToolStripMenuItem
-            // 
-            realizarVentaToolStripMenuItem.Name = "realizarVentaToolStripMenuItem";
-            realizarVentaToolStripMenuItem.Size = new Size(180, 22);
-            realizarVentaToolStripMenuItem.Text = "Realizar Venta";
-            realizarVentaToolStripMenuItem.Click += realizarVentaToolStripMenuItem_Click;
+            historialDeTicketsPDFToolStripMenuItem.Name = "historialDeTicketsPDFToolStripMenuItem";
+            historialDeTicketsPDFToolStripMenuItem.Size = new Size(180, 22);
+            historialDeTicketsPDFToolStripMenuItem.Text = "Historial de Tickets";
+            historialDeTicketsPDFToolStripMenuItem.Click += historialDeTicketsPDFToolStripMenuItem_Click;
             // 
             // MainUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1140, 564);
+            ClientSize = new Size(1200, 768);
             Controls.Add(label1);
             Controls.Add(comboIdiomasGlobal);
             Controls.Add(menuStrip1);
@@ -273,5 +289,7 @@
         private ToolStripMenuItem contabilidadToolStripMenuItemEvaluarCotiz;
         private ToolStripMenuItem ventasToolStripMenuItem;
         private ToolStripMenuItem realizarVentaToolStripMenuItem;
+        private ToolStripMenuItem historialDeVentasToolStripMenuItem;
+        private ToolStripMenuItem historialDeTicketsPDFToolStripMenuItem;
     }
 }

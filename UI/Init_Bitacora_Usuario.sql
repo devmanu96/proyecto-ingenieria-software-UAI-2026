@@ -236,10 +236,29 @@ CREATE TABLE COBRO (
     IdVenta INT NOT NULL,
     FechaCobro DATETIME NOT NULL,
     MontoCobrado DECIMAL(18,2) NOT NULL,
-    MetodoPago VARCHAR(50) NOT NULL, -- Ej: 'Transferencia', 'Efectivo', 'Cheque'
-    NumeroComprobante VARCHAR(50),
+    MetodoPago VARCHAR(50) NOT NULL, -- 'Efectivo', 'Debito', 'Credito', 'Transferencia'
+    NumeroTarjeta VARCHAR(20) NULL,  -- Para guardar "XXXX-XXXX-XXXX-1234" (Mock)
+    Cuotas INT NOT NULL DEFAULT 1,   -- 1, 6, 9, 12
+    NumeroComprobante VARCHAR(50) NULL,
     CONSTRAINT FK_Cobro_Venta FOREIGN KEY (IdVenta) REFERENCES VENTA(IdVenta)
 );
+CREATE VIEW VISTA_HISTORIAL_VENTAS AS
+SELECT 
+    v.IdVenta,
+    v.FechaVenta,
+    c.RazonSocial AS Cliente,
+    u.Username AS Vendedor,
+    v.MontoTotal,
+    v.Estado,
+    ISNULL(STUFF((
+        SELECT ', ' + co.MetodoPago + ' ($' + CAST(co.MontoCobrado AS VARCHAR(20)) + ')'
+        FROM COBRO co
+        WHERE co.IdVenta = v.IdVenta
+        FOR XML PATH('')
+    ), 1, 2, ''), 'Sin pagos registrados') AS PagosCombinados
+FROM VENTA v
+INNER JOIN CLIENTE c ON v.IdCliente = c.IdCliente
+INNER JOIN Usuario u ON v.IdUsuario = u.ID;
 
 -- =========================================================================
 -- INSERCIÓN DE DATOS DE PRUEBA (CLIENTES BASE)

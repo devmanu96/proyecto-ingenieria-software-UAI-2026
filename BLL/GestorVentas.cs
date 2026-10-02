@@ -21,20 +21,18 @@ namespace BLL
             return repositorio.ObtenerClientesActivos();
         }
 
-        public void ProcesarNuevaVenta(int idCliente, Guid idUsuario, List<DetalleVenta> detalles, string metodoPago)
+        // Se cambia 'string metodoPago' por 'List<Cobro> pagosIngresados'
+        public string ProcesarNuevaVenta(int idCliente, Guid idUsuario, List<DetalleVenta> detalles, List<Cobro> pagosIngresados)
         {
-            
             if (detalles == null || !detalles.Any())
                 throw new Exception("No se puede registrar una venta sin productos.");
 
             decimal montoTotalCalculado = 0;
 
-            
             foreach (var detalle in detalles)
             {
                 if (detalle.Cantidad <= 0)
                     throw new Exception($"La cantidad para el producto {detalle.IdProducto} debe ser mayor a cero.");
-
                 if (detalle.PrecioUnitario <= 0)
                     throw new Exception($"El precio del producto {detalle.IdProducto} es inválido.");
 
@@ -42,10 +40,14 @@ namespace BLL
                 montoTotalCalculado += detalle.Subtotal;
             }
 
-            if (montoTotalCalculado <= 0)
-                throw new Exception("El monto total de la venta debe ser mayor a cero.");
+            // Validar que la lista de pagos cubra el monto de la venta
+            if (pagosIngresados == null || !pagosIngresados.Any())
+                throw new Exception("Debe ingresar al menos un método de pago.");
 
-            
+            decimal totalPagado = pagosIngresados.Sum(p => p.MontoCobrado);
+            if (totalPagado < montoTotalCalculado)
+                throw new Exception($"El pago ingresado (${totalPagado}) es menor al total de la venta (${montoTotalCalculado}).");
+
             Venta nuevaVenta = new Venta
             {
                 IdCliente = idCliente,
@@ -55,18 +57,18 @@ namespace BLL
                 Estado = "Completada"
             };
 
-            
-            Cobro nuevoCobro = new Cobro
+            string ticketGenerado = "TKT-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
+            foreach (var cobro in pagosIngresados)
             {
-                FechaCobro = DateTime.Now,
-                MontoCobrado = montoTotalCalculado,
-                MetodoPago = metodoPago,
-                
-                NumeroComprobante = "TKT-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
-            };
+                cobro.FechaCobro = DateTime.Now;
+                cobro.NumeroComprobante = ticketGenerado;
+            }
 
+            repositorio.RegistrarVentaCompleta(nuevaVenta, detalles, pagosIngresados);
 
-            repositorio.RegistrarVentaCompleta(nuevaVenta, detalles, nuevoCobro);
+            // NUEVO: Retornamos el ticket para mostrarlo en la UI
+            return ticketGenerado;
         }
     }
 }

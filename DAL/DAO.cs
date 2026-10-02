@@ -5,13 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-using Microsoft.Data.SqlClient;
-using System;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-
 namespace DAL
 {
     public class DAO
@@ -25,15 +18,19 @@ namespace DAL
         private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud, daProveedor, daCatalogoProveedor, daOrdenCompra, daDetalleOC;
         private SqlDataAdapter daPresupuesto, daPagoEmitido, daFacturaProveedor, daRecepcion, daLoteBebida;
 
-        // Nuevos Adaptadores Módulo Ventas
+        // Adaptadores Módulo Ventas
         private SqlDataAdapter daCliente, daVenta, daDetalleVenta, daCobro;
+        
+        // NUEVO: Adaptador exclusivo para la Vista (Solo Lectura)
+        private SqlDataAdapter daVistaHistorialVentas;
 
         // Constructores de comandos Base y Compras
         private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
         private SqlCommandBuilder cbPresupuesto, cbPagoEmitido, cbFacturaProveedor, cbRecepcion, cbLoteBebida;
 
-        // Nuevos CommandBuilders Módulo Ventas
+        // CommandBuilders Módulo Ventas
         private SqlCommandBuilder cbCliente, cbVenta, cbDetalleVenta, cbCobro;
+        // NOTA: Las Vistas SQL no llevan SqlCommandBuilder porque no admiten operaciones INSERT/UPDATE/DELETE.
 
         private DAO()
         {
@@ -68,6 +65,9 @@ namespace DAL
             daVenta = new SqlDataAdapter("Select * From VENTA", connectionString);
             daDetalleVenta = new SqlDataAdapter("Select * From DETALLE_VENTA", connectionString);
             daCobro = new SqlDataAdapter("Select * From COBRO", connectionString);
+            
+            // Inicializar Adaptador de Vista
+            daVistaHistorialVentas = new SqlDataAdapter("SELECT * FROM VISTA_HISTORIAL_VENTAS", connectionString);
 
             // 2. Configurar MissingSchemaAction
             daUsers.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -133,6 +133,9 @@ namespace DAL
                 CargarTablaConEsquema(daVenta, "VENTA", conn);
                 CargarTablaConEsquema(daDetalleVenta, "DETALLE_VENTA", conn);
                 CargarTablaConEsquema(daCobro, "COBRO", conn);
+
+                // Llenar Vista de Historial (No requiere esquema estricto de llave primaria, solo volcado de datos)
+                daVistaHistorialVentas.Fill(mainDataSet, "VISTA_HISTORIAL_VENTAS");
             }
 
             // 4. Inicializar CommandBuilders
@@ -313,78 +316,22 @@ namespace DAL
             }
         }
 
-        //private string ObtenerStringConexionEnv()
-        //{
-        //    string? connectionString = null;
-        //    string directorioActualDAO = AppContext.BaseDirectory;
-        //    DirectoryInfo? directorioRaiz = new DirectoryInfo(directorioActualDAO);
-
-        //    while (directorioRaiz != null && directorioRaiz.GetFiles("*.sln").Length == 0)
-        //        directorioRaiz = directorioRaiz.Parent;
-
-        //    if (directorioRaiz == null) throw new Exception("Raiz del proyecto no encontrada para cargar archivo de configuración");
-
-        //    string rutaArchivoEnv = Path.Combine(directorioRaiz.FullName, ".env");
-        //    if (File.Exists(rutaArchivoEnv))
-        //    {
-        //        try { DotNetEnv.Env.Load(rutaArchivoEnv); } catch { }
-        //    }
-
-        //    connectionString = Environment.GetEnvironmentVariable("SQL_SERVER_CONNECTION_STRING")
-        //        ?? Environment.GetEnvironmentVariable("ConnectionStrings__Default")
-        //        ?? Environment.GetEnvironmentVariable("ConnectionStrings:Default")
-        //        ?? Environment.GetEnvironmentVariable("DefaultConnection");
-
-        //    if (connectionString == null)
-        //    {
-        //        string rutaAppSettings = Path.Combine(directorioRaiz.FullName, "appsettings.json");
-        //        if (File.Exists(rutaAppSettings))
-        //        {
-        //            try
-        //            {
-        //                string json = File.ReadAllText(rutaAppSettings);
-        //                using JsonDocument doc = JsonDocument.Parse(json);
-        //                JsonElement root = doc.RootElement;
-
-        //                if (root.TryGetProperty("ConnectionStrings", out JsonElement cs))
-        //                {
-        //                    if (cs.TryGetProperty("Default", out JsonElement def) && def.ValueKind == JsonValueKind.String)
-        //                        connectionString = def.GetString();
-        //                    else if (cs.TryGetProperty("SQL_SERVER_CONNECTION_STRING", out JsonElement ss) && ss.ValueKind == JsonValueKind.String)
-        //                        connectionString = ss.GetString();
-        //                }
-        //                else if (root.TryGetProperty("SQL_SERVER_CONNECTION_STRING", out JsonElement top) && top.ValueKind == JsonValueKind.String)
-        //                    connectionString = top.GetString();
-        //            }
-        //            catch { }
-        //        }
-        //    }
-
-        //    if (connectionString == null) throw new Exception("Configuración para conexión no encontrada.");
-
-        //    return connectionString;
-        //}
         private string ObtenerStringConexionEnv()
         {
             string? connectionString = null;
-
-            // AppContext.BaseDirectory apunta directamente a la carpeta donde corre UI.exe (ej: C:\Program Files\Sistema...)
             string directorioBase = AppContext.BaseDirectory;
 
-            // 1. Intentar cargar el archivo .env asumiendo que está junto al ejecutable
             string rutaArchivoEnv = Path.Combine(directorioBase, ".env");
             if (File.Exists(rutaArchivoEnv))
             {
                 try { DotNetEnv.Env.Load(rutaArchivoEnv); } catch { }
             }
 
-            // 2. Leer la variable de entorno cargada
             connectionString = Environment.GetEnvironmentVariable("SQL_SERVER_CONNECTION_STRING")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__Default")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings:Default")
                 ?? Environment.GetEnvironmentVariable("DefaultConnection");
 
-            // 3. Fallback: Intentar leer appsettings.json si .env no tenía la cadena o falló
             if (connectionString == null)
             {
                 string rutaAppSettings = Path.Combine(directorioBase, "appsettings.json");
@@ -410,11 +357,24 @@ namespace DAL
                 }
             }
 
-            // Si todo falla, lanzamos una excepción detallando dónde se buscó el archivo
             if (connectionString == null)
                 throw new Exception($"Configuración para conexión no encontrada. Verifique que el archivo .env exista en: {directorioBase}");
 
             return connectionString;
+        }
+        public DataTable RefrescarVistaHistorial()
+        {
+            DataTable dtFresco = new DataTable();
+            string connString = ObtenerStringConexionEnv();
+
+            using (SqlConnection conn = new SqlConnection(connString))
+            {
+                using (SqlDataAdapter daRefresh = new SqlDataAdapter("SELECT * FROM VISTA_HISTORIAL_VENTAS", conn))
+                {
+                    daRefresh.Fill(dtFresco);
+                }
+            }
+            return dtFresco;
         }
 
         public DataSet ObtenerDataSet()
@@ -500,6 +460,8 @@ namespace DAL
                 daDetalleVenta.Update(mainDataSet, "DETALLE_VENTA");
                 daCobro.Update(mainDataSet, "COBRO");
 
+                // IMPORTANTE: NO se incluye daVistaHistorialVentas.Update() porque las vistas no son insertables desde el dataset directamente aquí.
+                
                 mainDataSet.AcceptChanges();
             }
         }

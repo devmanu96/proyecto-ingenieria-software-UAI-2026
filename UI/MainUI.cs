@@ -309,5 +309,18 @@ namespace UI
             UI.Venta.PuntoVentaUI formPuntoVenta = new UI.Venta.PuntoVentaUI();
             cargarFormulario(formPuntoVenta);
         }
+
+        private void historialDeVentasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Venta.HistorialVentasUI formHistorial = new UI.Venta.HistorialVentasUI();
+            cargarFormulario(formHistorial);
+        }
+
+        private void historialDeTicketsPDFToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Venta.VisorTicketsUI visorTickets = new UI.Venta.VisorTicketsUI();
+            visorTickets.MdiParent = this; // Suponiendo que tu menú es contenedor MDI
+            visorTickets.Show();
+        }
     }
 }
