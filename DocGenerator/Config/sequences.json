@@ -1,0 +1,121 @@
+{
+  "sequences": [
+    {
+      "name": "Proceso de Login",
+      "participants": [
+        { "name": "LoginUI", "type": "actor" },
+        { "name": "GestorLogin", "type": "control" },
+        { "name": "RepositorioUsuarios", "type": "database" },
+        { "name": "GestorIntegridad", "type": "control" }
+      ],
+      "messages": [
+        { "from": "LoginUI", "to": "GestorLogin", "label": "Login(username, password)", "type": "call" },
+        { "from": "GestorLogin", "to": "RepositorioUsuarios", "label": "BuscarPorUsername(username)", "type": "call" },
+        { "from": "RepositorioUsuarios", "to": "GestorLogin", "label": "Usuario", "type": "reply" },
+        { "from": "GestorLogin", "to": "GestorLogin", "label": "ValidarPassword(hash)", "type": "self" },
+        { "from": "GestorLogin", "to": "GestorIntegridad", "label": "VerificarIntegridad(usuario)", "type": "call" },
+        { "from": "GestorIntegridad", "to": "GestorLogin", "label": "ValidationResult", "type": "reply" },
+        { "from": "GestorLogin", "to": "LoginUI", "label": "resultado (exito/error)", "type": "reply" }
+      ]
+    },
+    {
+      "name": "Registrar Venta (Punto de Venta)",
+      "participants": [
+        { "name": "PuntoVentaUI", "type": "actor" },
+        { "name": "GestorVentas", "type": "control" },
+        { "name": "GestorProducto", "type": "control" },
+        { "name": "RepositorioVentas", "type": "database" },
+        { "name": "RepositorioProducto", "type": "database" }
+      ],
+      "messages": [
+        { "from": "PuntoVentaUI", "to": "GestorVentas", "label": "RegistrarVenta(venta, detalles, cobros)", "type": "call" },
+        { "from": "GestorVentas", "to": "GestorVentas", "label": "ValidarVenta()", "type": "self" },
+        { "from": "GestorVentas", "to": "GestorVentas", "label": "loop por cada detalle", "type": "loop" },
+        { "from": "GestorVentas", "to": "GestorProducto", "label": "ActualizarStock(idProducto, cantidad)", "type": "call" },
+        { "from": "GestorProducto", "to": "RepositorioProducto", "label": "DescontarStock(producto)", "type": "call" },
+        { "from": "RepositorioProducto", "to": "GestorProducto", "label": "ok", "type": "reply" },
+        { "from": "GestorProducto", "to": "GestorVentas", "label": "ok", "type": "reply" },
+        { "from": "GestorVentas", "to": "GestorVentas", "label": "", "type": "end" },
+        { "from": "GestorVentas", "to": "RepositorioVentas", "label": "Guardar(venta)", "type": "call" },
+        { "from": "RepositorioVentas", "to": "GestorVentas", "label": "idVenta", "type": "reply" },
+        { "from": "GestorVentas", "to": "PuntoVentaUI", "label": "resultado (idVenta)", "type": "reply" }
+      ]
+    },
+    {
+      "name": "Generar Solicitud de Abastecimiento",
+      "participants": [
+        { "name": "GenerarSolicitudUI", "type": "actor" },
+        { "name": "GestorSolicitud", "type": "control" },
+        { "name": "GestorProducto", "type": "control" },
+        { "name": "RepositorioSolicitud", "type": "database" },
+        { "name": "RepositorioProducto", "type": "database" }
+      ],
+      "messages": [
+        { "from": "GenerarSolicitudUI", "to": "GestorProducto", "label": "ObtenerProductosBajoStock()", "type": "call" },
+        { "from": "GestorProducto", "to": "RepositorioProducto", "label": "ListarConStockBajo()", "type": "call" },
+        { "from": "RepositorioProducto", "to": "GestorProducto", "label": "List<Producto>", "type": "reply" },
+        { "from": "GestorProducto", "to": "GenerarSolicitudUI", "label": "productos bajo stock", "type": "reply" },
+        { "from": "GenerarSolicitudUI", "to": "GestorSolicitud", "label": "CrearSolicitud(detalles)", "type": "call" },
+        { "from": "GestorSolicitud", "to": "RepositorioSolicitud", "label": "Guardar(solicitud)", "type": "call" },
+        { "from": "RepositorioSolicitud", "to": "GestorSolicitud", "label": "ok", "type": "reply" },
+        { "from": "GestorSolicitud", "to": "GenerarSolicitudUI", "label": "solicitud creada", "type": "reply" }
+      ]
+    },
+    {
+      "name": "Generar Orden de Compra",
+      "participants": [
+        { "name": "GenerarOrdenCompraUI", "type": "actor" },
+        { "name": "GestorCompras", "type": "control" },
+        { "name": "RepositorioOrdenCompra", "type": "database" },
+        { "name": "GestorProveedor", "type": "control" }
+      ],
+      "messages": [
+        { "from": "GenerarOrdenCompraUI", "to": "GestorProveedor", "label": "ObtenerProveedores()", "type": "call" },
+        { "from": "GestorProveedor", "to": "GenerarOrdenCompraUI", "label": "List<Proveedor>", "type": "reply" },
+        { "from": "GenerarOrdenCompraUI", "to": "GestorCompras", "label": "CrearOrden(idProveedor, detalles)", "type": "call" },
+        { "from": "GestorCompras", "to": "GestorCompras", "label": "CalcularMontoTotal()", "type": "self" },
+        { "from": "GestorCompras", "to": "RepositorioOrdenCompra", "label": "Guardar(ordenCompra)", "type": "call" },
+        { "from": "RepositorioOrdenCompra", "to": "GestorCompras", "label": "idOrden", "type": "reply" },
+        { "from": "GestorCompras", "to": "GenerarOrdenCompraUI", "label": "orden creada", "type": "reply" }
+      ]
+    },
+    {
+      "name": "Recepción de Mercadería",
+      "participants": [
+        { "name": "RecepcionMercaderiaUI", "type": "actor" },
+        { "name": "GestorRecepcion", "type": "control" },
+        { "name": "GestorProducto", "type": "control" },
+        { "name": "RepositorioRecepcion", "type": "database" }
+      ],
+      "messages": [
+        { "from": "RecepcionMercaderiaUI", "to": "GestorRecepcion", "label": "RegistrarRecepcion(idOrden, remito, lotes)", "type": "call" },
+        { "from": "GestorRecepcion", "to": "GestorRecepcion", "label": "loop por cada lote", "type": "loop" },
+        { "from": "GestorRecepcion", "to": "GestorProducto", "label": "ActualizarStock(idProducto, cantidadRecibida)", "type": "call" },
+        { "from": "GestorProducto", "to": "GestorRecepcion", "label": "ok", "type": "reply" },
+        { "from": "GestorRecepcion", "to": "GestorRecepcion", "label": "", "type": "end" },
+        { "from": "GestorRecepcion", "to": "RepositorioRecepcion", "label": "Guardar(recepcion)", "type": "call" },
+        { "from": "RepositorioRecepcion", "to": "GestorRecepcion", "label": "ok", "type": "reply" },
+        { "from": "GestorRecepcion", "to": "RecepcionMercaderiaUI", "label": "recepcion registrada", "type": "reply" }
+      ]
+    },
+    {
+      "name": "Gestión de Perfiles y Permisos",
+      "participants": [
+        { "name": "GestionPerfilesUI", "type": "actor" },
+        { "name": "GestorPerfiles", "type": "control" },
+        { "name": "RepositorioPerfiles", "type": "database" }
+      ],
+      "messages": [
+        { "from": "GestionPerfilesUI", "to": "GestorPerfiles", "label": "CrearPerfil(nombre, nivel)", "type": "call" },
+        { "from": "GestorPerfiles", "to": "GestorPerfiles", "label": "ValidarNombreUnico()", "type": "self" },
+        { "from": "GestorPerfiles", "to": "RepositorioPerfiles", "label": "Guardar(perfil)", "type": "call" },
+        { "from": "RepositorioPerfiles", "to": "GestorPerfiles", "label": "ok", "type": "reply" },
+        { "from": "GestorPerfiles", "to": "GestionPerfilesUI", "label": "perfil creado", "type": "reply" },
+        { "from": "GestionPerfilesUI", "to": "GestorPerfiles", "label": "AsignarPermiso(idPerfil, permiso)", "type": "call" },
+        { "from": "GestorPerfiles", "to": "RepositorioPerfiles", "label": "AgregarPermiso(perfil, permiso)", "type": "call" },
+        { "from": "RepositorioPerfiles", "to": "GestorPerfiles", "label": "ok", "type": "reply" },
+        { "from": "GestorPerfiles", "to": "GestionPerfilesUI", "label": "permiso asignado", "type": "reply" }
+      ]
+    }
+  ]
+}

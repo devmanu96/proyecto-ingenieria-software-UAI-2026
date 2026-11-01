@@ -54,6 +54,64 @@ namespace UI
             formCargadoActualmente.Show();
         }
 
+        //private void LoginUI_SesionIniciada(object? sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Limpieza de menús por si hubo un cambio de sesión
+        //        foreach (ToolStripItem item in menuStrip1.Items)
+        //        {
+        //            if (item.Name != "mainUIStripMenuItemInicio")
+        //                item.Visible = false;
+        //        }
+
+        //        mainUIStripMenuItemInicio.Visible = true;
+        //        mainUIStripMenuItemCerrarSesion.Visible = true;
+        //        mainUIStripMenuItemCerrarSesion.Enabled = true;
+        //        mainUIStripMenuItemIniciarSesion.Visible = false;
+        //        mainUIStripMenuItemIniciarSesion.Enabled = false;
+
+        //        Usuario? usuarioActual = SessionManager.getInstance.ObtenerUsuarioActivo();
+
+        //        if (usuarioActual != null)
+        //        {
+        //            // Módulo de Administración (Solo visibles si tienen el permiso)
+        //            mainUIStripMenuItemGestionDeUsuarios.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
+        //            recuperarIntegridadToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
+        //            mainUIStripMenuItemGestionDePerfiles.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-PERFIL"));
+        //            mainUIStripMenuItemBitacora.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-CONSULTA-BIT"));
+        //            mainUIStripMenuItemHistorialUsuario.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-HISTORIAL"));
+        //            agregarIdiomaToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-AGREGAR-IDM"));
+
+        //            // NUEVO: Menú de Administración (Gestión de Ofertas Inteligentes)
+        //            // Puedes cambiar "PERM-GESTIONAR-PERFIL" por el permiso específico de administrador que desees usar
+        //            administracionToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-PERFIL") || p.ValidarPermiso("PERM-GESTIONAR-OFERTAS"));
+
+        //            // Módulo de Almacén, Compras y Contabilidad (Solo visibles si tienen el permiso)
+        //            menuStripItemAlmacen.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GEN-SOLICITUD") || p.ValidarPermiso("PERM-ABM-PROD"));
+        //            menuStripItemCompras.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-SELECCIONAR-PROD"));
+
+        //            // Aseguramos que recepción de mercadería requiera el permiso adecuado
+        //            recepcionDeMercaderiaToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-RECIBIR-MERCADERIA"));
+
+        //            menuStripItemContabilidad.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EVALUAR-COTIZ"));
+
+        //            // Módulo de Ventas
+        //            ventasToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-REALIZAR-VENTA") || p.ValidarPermiso("PERF-VENDEDOR"));
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Login error");
+        //        }
+
+        //        formCargadoActualmente?.Close();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string tituloError = GestorIdioma.GetInstance.TraducirMensaje("msg_TituloError", "Error");
+        //        MessageBox.Show(ex.Message, tituloError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
         private void LoginUI_SesionIniciada(object? sender, EventArgs e)
         {
             try
@@ -75,20 +133,38 @@ namespace UI
 
                 if (usuarioActual != null)
                 {
-                    // Módulo de Administración (Solo visibles si tienen el permiso)
+                    // Módulo de Administración Base
                     mainUIStripMenuItemGestionDeUsuarios.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
                     recuperarIntegridadToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-USR"));
                     mainUIStripMenuItemGestionDePerfiles.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-PERFIL"));
                     mainUIStripMenuItemBitacora.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-CONSULTA-BIT"));
                     mainUIStripMenuItemHistorialUsuario.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GESTIONAR-HISTORIAL"));
                     agregarIdiomaToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-AGREGAR-IDM"));
-                    // Módulo de Almacén, Compras y Contabilidad (Solo visibles si tienen el permiso)
-                    menuStripItemAlmacen.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GEN-SOLICITUD") || p.ValidarPermiso("PERM-ABM-PROD"));
-                    menuStripItemCompras.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-SELECCIONAR-PROD"));
-                    menuStripItemContabilidad.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EVALUAR-COTIZ"));
-                    // Módulo de Ventas (Agregado)
-                    ventasToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-REALIZAR-VENTA") || p.ValidarPermiso("PERF-VENDEDOR"));
 
+                    // Menú de Administración (Gestión de Ofertas Inteligentes)
+                    administracionToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-AUDITAR-COMPRA") || p.ValidarPermiso("PERM-GESTIONAR-USR"));
+
+                    // =======================================================
+                    // Módulo de Almacén (Control de Padre e Hijos)
+                    // =======================================================
+                    menuStripItemAlmacen.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GEN-SOLICITUD") || p.ValidarPermiso("PERM-ABM-PROD"));
+
+                    // Hijos de Almacén específicos:
+                    almacenToolStripMenuItemGenerarSolicitud.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-GEN-SOLICITUD"));
+                    gestionarProductosToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-ABM-PROD"));
+
+                    // =======================================================
+                    // Módulo de Compras (Control de Padre e Hijos)
+                    // =======================================================
+                    menuStripItemCompras.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC") || p.ValidarPermiso("PERM-SELECCIONAR-PROD"));
+
+                    // Hijos de Compras específicos:
+                    comprasToolStripMenuItemEmitirOC.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EMITIR-OC"));
+                    recepcionDeMercaderiaToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-REG-FACTURA") || p.ValidarPermiso("PERM-ABM-PROD"));
+
+                    // Contabilidad y Ventas
+                    menuStripItemContabilidad.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-EVALUAR-COTIZ"));
+                    ventasToolStripMenuItem.Visible = usuarioActual.Permisos.Any(p => p.ValidarPermiso("PERM-REALIZAR-VENTA") || p.ValidarPermiso("PERF-VENDEDOR"));
                 }
                 else
                 {
@@ -321,6 +397,30 @@ namespace UI
             UI.Venta.VisorTicketsUI visorTickets = new UI.Venta.VisorTicketsUI();
             visorTickets.MdiParent = this; // Suponiendo que tu menú es contenedor MDI
             visorTickets.Show();
+        }
+
+        private void recepcionDeMercaderiaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Compras.RecepcionMercaderiaUI formRecepcion = new UI.Compras.RecepcionMercaderiaUI();
+            cargarFormulario(formRecepcion);
+        }
+
+        private void gestionOfertasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Administracion.GestionOfertasInteligentesUI formOfertas = new UI.Administracion.GestionOfertasInteligentesUI();
+            cargarFormulario(formOfertas);
+        }
+
+        private void gestionarProductosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Almacen.GestionProductosUI formProductos = new UI.Almacen.GestionProductosUI();
+            cargarFormulario(formProductos);
+        }
+
+        private void gestionProveedoresToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UI.Almacen.ProveedoresUI frmProveedores = new UI.Almacen.ProveedoresUI();
+            frmProveedores.ShowDialog();
         }
     }
 }

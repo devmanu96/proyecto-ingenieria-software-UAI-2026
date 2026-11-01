@@ -11,8 +11,10 @@ namespace UI.Utilidades
     {
         public static string GenerarTicket(string nroComprobante, string vendedor, List<VistaCarritoDTO> detalles, List<Cobro> pagos, decimal totalVenta)
         {
-            // 1. Crear carpeta de Tickets en el directorio del programa
-            string carpeta = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tickets");
+            // 1. NUEVA RUTA: Crear carpeta de Tickets en Mis Documentos/MegaDrink/Tickets
+            string rutaMisDocumentos = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string carpeta = Path.Combine(rutaMisDocumentos, "MegaDrink", "Tickets");
+
             if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
 
             // 2. Definir ruta y nombre del archivo

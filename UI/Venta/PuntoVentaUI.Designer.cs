@@ -34,9 +34,14 @@
             btnAgregarPago = new Button();
             lblRestante = new Label();
             btnQuitarPago = new Button();
+            panelUpselling = new Panel();
+            lblSugerenciaUpselling = new Label();
+            lblTituloUpselling = new Label();
+            lblFuego = new Label();
             ((System.ComponentModel.ISupportInitialize)numCantidad).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvPagos).BeginInit();
+            panelUpselling.SuspendLayout();
             SuspendLayout();
             // 
             // lblCliente
@@ -209,6 +214,49 @@
             btnQuitarPago.Text = "Quitar Pago";
             btnQuitarPago.UseVisualStyleBackColor = true;
             // 
+            // panelUpselling
+            // 
+            panelUpselling.BackColor = Color.LightGoldenrodYellow;
+            panelUpselling.BorderStyle = BorderStyle.FixedSingle;
+            panelUpselling.Controls.Add(lblSugerenciaUpselling);
+            panelUpselling.Controls.Add(lblTituloUpselling);
+            panelUpselling.Controls.Add(lblFuego);
+            panelUpselling.Location = new Point(414, 112);
+            panelUpselling.Name = "panelUpselling";
+            panelUpselling.Size = new Size(330, 63);
+            panelUpselling.TabIndex = 17;
+            // 
+            // lblFuego
+            // 
+            lblFuego.AutoSize = true;
+            lblFuego.Font = new Font("Segoe UI", 18F);
+            lblFuego.Location = new Point(5, 12);
+            lblFuego.Name = "lblFuego";
+            lblFuego.Size = new Size(39, 32);
+            lblFuego.TabIndex = 0;
+            lblFuego.Text = "🔥";
+            // 
+            // lblTituloUpselling
+            // 
+            lblTituloUpselling.AutoSize = true;
+            lblTituloUpselling.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblTituloUpselling.ForeColor = Color.DarkRed;
+            lblTituloUpselling.Location = new Point(45, 5);
+            lblTituloUpselling.Name = "lblTituloUpselling";
+            lblTituloUpselling.Size = new Size(164, 15);
+            lblTituloUpselling.TabIndex = 1;
+            lblTituloUpselling.Text = "¡OPORTUNIDAD DE VENTA!";
+            // 
+            // lblSugerenciaUpselling
+            // 
+            lblSugerenciaUpselling.Font = new Font("Segoe UI", 8.25F, FontStyle.Bold);
+            lblSugerenciaUpselling.ForeColor = Color.Black;
+            lblSugerenciaUpselling.Location = new Point(45, 22);
+            lblSugerenciaUpselling.Name = "lblSugerenciaUpselling";
+            lblSugerenciaUpselling.Size = new Size(275, 35);
+            lblSugerenciaUpselling.TabIndex = 2;
+            lblSugerenciaUpselling.Text = "[Texto Promo]";
+            // 
             // PuntoVentaUI
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -216,6 +264,7 @@
             AutoScroll = true;
             BackColor = SystemColors.Control;
             ClientSize = new Size(920, 680);
+            Controls.Add(panelUpselling);
             Controls.Add(btnQuitarPago);
             Controls.Add(lblRestante);
             Controls.Add(btnAgregarPago);
@@ -240,6 +289,8 @@
             ((System.ComponentModel.ISupportInitialize)numCantidad).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvPagos).EndInit();
+            panelUpselling.ResumeLayout(false);
+            panelUpselling.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -263,5 +314,11 @@
         private Button btnAgregarPago;
         private Label lblRestante;
         private Button btnQuitarPago;
+
+        // Controles de Upselling agregados
+        private Panel panelUpselling;
+        private Label lblSugerenciaUpselling;
+        private Label lblTituloUpselling;
+        private Label lblFuego;
     }
 }

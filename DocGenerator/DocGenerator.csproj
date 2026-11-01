@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DocGenerator</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Config\sequences.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Solo referenciamos las capas que no dependen de Windows Forms -->
+  <ItemGroup>
+    <ProjectReference Include="..\BE\BE.csproj" />
+    <ProjectReference Include="..\BLL\BLL.csproj" />
+    <ProjectReference Include="..\DAL\DAL.csproj" />
+    <ProjectReference Include="..\servicios\servicios.csproj" />
+    <!-- UI se analiza en runtime cargando el .dll directamente -->
+  </ItemGroup>
+
+</Project>

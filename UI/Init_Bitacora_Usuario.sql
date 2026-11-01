@@ -242,6 +242,17 @@ CREATE TABLE COBRO (
     NumeroComprobante VARCHAR(50) NULL,
     CONSTRAINT FK_Cobro_Venta FOREIGN KEY (IdVenta) REFERENCES VENTA(IdVenta)
 );
+CREATE TABLE OFERTA_SUGERIDA (
+    IdOferta INT PRIMARY KEY IDENTITY(1,1),
+    IdLote INT NOT NULL,                      -- El lote de bebida que está próximo a vencer
+    IdProductoAsociado VARCHAR(50) NULL,      -- Producto "gancho" sugerido (ej: el más vendido junto a este)
+    TituloOferta VARCHAR(150) NOT NULL,       -- Ej: "Promo 15% OFF - Lote Próximo a Vencer"
+    DescuentoSugerido DECIMAL(5,2) NOT NULL,  -- Porcentaje de descuento sugerido (Ej: 15.00)
+    Estado VARCHAR(50) NOT NULL,              -- 'Pendiente', 'Aprobada', 'Rechazada', 'Expirada'
+    FechaGeneracion DATETIME NOT NULL,
+    CONSTRAINT FK_Oferta_Lote FOREIGN KEY (IdLote) REFERENCES LOTE_BEBIDA(IdLote),
+    CONSTRAINT FK_Oferta_ProductoAsociado FOREIGN KEY (IdProductoAsociado) REFERENCES PRODUCTO(IdProducto)
+);
 CREATE VIEW VISTA_HISTORIAL_VENTAS AS
 SELECT 
     v.IdVenta,
@@ -516,7 +527,28 @@ INSERT INTO CATALOGO_PROVEEDOR (IdProveedor, IdProducto, NombreArticuloProveedor
 (@IdManaos, '7798099881052', 'Pallet Manaos Pomelo Blanco 2.25L (50 packs x 6)', 200000.00, 300),
 (@IdBaggio, '7790503000003', 'Pallet Baggio Manzana 1L (80 cajas x 8)', 400000.00, 640);
 
+GO
 
+-- 1. Creamos una Orden y Recepción de "Ajuste de Inventario"
+INSERT INTO ORDEN_COMPRA (IdProveedor, FechaEmision, Estado) VALUES (1, GETDATE(), 'Pagada');
+DECLARE @IdOrdenAjuste INT = SCOPE_IDENTITY();
+
+INSERT INTO RECEPCION (IdOrden, NumeroRemito, FechaIngreso) VALUES (@IdOrdenAjuste, 'REMITO-AJUSTE-INICIAL', GETDATE());
+DECLARE @IdRecepcionAjuste INT = SCOPE_IDENTITY();
+
+-- 2. Migramos el stock suelto a Lotes formales
+INSERT INTO LOTE_BEBIDA (IdRecepcion, IdProducto, NumeroLote, FechaVencimiento, CantidadRecibida, StockActual)
+SELECT 
+    @IdRecepcionAjuste, 
+    IdProducto, 
+    'LT-INICIAL-' + CodigoSKU,           -- Genera lotes como "LT-INICIAL-SKU-011"
+    DATEADD(month, 6, GETDATE()),        -- Les da 6 meses de vida útil por defecto
+    StockActual,                         -- La cantidad original ingresada
+    StockActual
+FROM PRODUCTO 
+WHERE StockActual > 0 
+  AND IdProducto NOT IN (SELECT IdProducto FROM LOTE_BEBIDA); -- Solo a los que no tienen lote
+GO
 -- =========================================================================
 -- FASE 4: INSERCIÓN DE IDIOMAS Y TRADUCCIONES
 -- =========================================================================
@@ -1134,3 +1166,58 @@ WHERE NOT EXISTS (
     AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
 );
 GO
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('ES', 'GestionProductosUI', 'Gestión de Productos (ABM)'),
+('ES', 'gbxFormularioABM', 'Datos del Producto'),
+('ES', 'gbxListadoProductos', 'Catálogo Activo'),
+('ES', 'lblCodigoBarra', 'Código de Barras (SKU):'),
+('ES', 'lblNombreProd', 'Nombre del Producto:'),
+('ES', 'lblPrecioUnitario', 'Precio Unitario local:'),
+('ES', 'lblPuntoPedidoAbm', 'Punto de Pedido (Alerta):'),
+('ES', 'btnGuardar', 'Guardar'),
+('ES', 'btnEliminar', 'Dar de Baja'),
+('ES', 'btnLimpiar', 'Limpiar Campos'),
+('ES', 'err_CamposVacios', 'Todos los campos obligatorios deben estar completos.'),
+('ES', 'err_PrecioInvalido', 'El precio debe ser mayor a cero.'),
+('ES', 'msg_ProductoModificado', 'Producto modificado exitosamente.'),
+('ES', 'msg_ProductoRegistrado', 'Producto registrado exitosamente.'),
+('ES', 'msg_ConfirmarBajaProd', '¿Está seguro que desea dar de baja este producto del catálogo?'),
+('ES', 'msg_ProductoBajaExitosa', 'Producto dado de baja exitosamente.');
+
+-- TRADUCCIONES PARA EL ABM DE PRODUCTOS (INGLÉS)
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('EN', 'GestionProductosUI', 'Product Management (CRUD)'),
+('EN', 'gbxFormularioABM', 'Product Details'),
+('EN', 'gbxListadoProductos', 'Active Catalog'),
+('EN', 'lblCodigoBarra', 'Barcode (SKU):'),
+('EN', 'lblNombreProd', 'Product Name:'),
+('EN', 'lblPrecioUnitario', 'Local Unit Price:'),
+('EN', 'lblPuntoPedidoAbm', 'Reorder Point (Alert):'),
+('EN', 'btnGuardar', 'Save'),
+('EN', 'btnEliminar', 'Deactivate'),
+('EN', 'btnLimpiar', 'Clear Fields'),
+('EN', 'err_CamposVacios', 'All required fields must be filled.'),
+('EN', 'err_PrecioInvalido', 'The price must be greater than zero.'),
+('EN', 'msg_ProductoModificado', 'Product modified successfully.'),
+('EN', 'msg_ProductoRegistrado', 'Product registered successfully.'),
+('EN', 'msg_ConfirmarBajaProd', 'Are you sure you want to deactivate this product from the catalog?'),
+('EN', 'msg_ProductoBajaExitosa', 'Product deactivated successfully.');
+
+-- TRADUCCIONES PARA EL ABM DE PRODUCTOS (PORTUGUÉS)
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES 
+('PT', 'GestionProductosUI', 'Gestão de Produtos (CRUD)'),
+('PT', 'gbxFormularioABM', 'Detalhes do Produto'),
+('PT', 'gbxListadoProductos', 'Catálogo Ativo'),
+('PT', 'lblCodigoBarra', 'Código de Barras (SKU):'),
+('PT', 'lblNombreProd', 'Nome do Produto:'),
+('PT', 'lblPrecioUnitario', 'Preço Unitário local:'),
+('PT', 'lblPuntoPedidoAbm', 'Ponto de Pedido (Alerta):'),
+('PT', 'btnGuardar', 'Salvar'),
+('PT', 'btnEliminar', 'Desativar'),
+('PT', 'btnLimpiar', 'Limpar Campos'),
+('PT', 'err_CamposVacios', 'Todos os campos obrigatórios devem ser preenchidos.'),
+('PT', 'err_PrecioInvalido', 'O preço deve ser maior que zero.'),
+('PT', 'msg_ProductoModificado', 'Produto modificado com sucesso.'),
+('PT', 'msg_ProductoRegistrado', 'Produto registrado com sucesso.'),
+('PT', 'msg_ConfirmarBajaProd', 'Tem certeza de que deseja desativar este produto do catálogo?'),
+('PT', 'msg_ProductoBajaExitosa', 'Produto desativado com sucesso.');

@@ -24,7 +24,9 @@ namespace UI.Venta
 
         private void CargarTickets()
         {
-            string carpeta = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tickets");
+            // NUEVA RUTA: Documentos del usuario
+            string rutaMisDocumentos = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string carpeta = Path.Combine(rutaMisDocumentos, "MegaDrink", "Tickets");
 
             // Si la carpeta no existe, la creamos para evitar errores
             if (!Directory.Exists(carpeta))

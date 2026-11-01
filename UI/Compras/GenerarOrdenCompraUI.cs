@@ -75,6 +75,9 @@ namespace UI.Compras
             btnAgregarCarrito.Click += btnAgregarCarrito_Click;
             btnEmitirOrden.Click += btnEmitirOrden_Click;
             btnCancelarOC.Click += btnCancelarOC_Click;
+
+            // NUEVO: Evento seguro para dar formato a las columnas generadas
+            dgvCarritoOC.DataBindingComplete += dgvCarritoOC_DataBindingComplete;
         }
 
         private void ActualizarPosicionIdioma()
@@ -130,6 +133,16 @@ namespace UI.Compras
             ActualizarTotal();
         }
 
+        // NUEVO: Método para dar formato de moneda a la grilla sin errores de memoria
+        private void dgvCarritoOC_DataBindingComplete(object? sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            if (dgvCarritoOC.Columns.Contains("PrecioAcordado"))
+                dgvCarritoOC.Columns["PrecioAcordado"].DefaultCellStyle.Format = "C2";
+
+            if (dgvCarritoOC.Columns.Contains("Subtotal"))
+                dgvCarritoOC.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
+        }
+
         private void tabControl1_SelectedIndexChanged(object? sender, EventArgs e)
         {
             AcomodarGrillaCatalogo();
@@ -153,19 +166,41 @@ namespace UI.Compras
             if (dgvCatalogo.CurrentRow != null)
             {
                 string idProd = dgvCatalogo.CurrentRow.Cells["IdProducto"].Value.ToString() ?? string.Empty;
-                decimal precio = Convert.ToDecimal(dgvCatalogo.CurrentRow.Cells["PrecioPallet"].Value);
-                int cantidad = (int)numericUpDown1.Value;
 
-                if (cantidad <= 0)
+                // Extraemos los datos del catálogo B2B
+                decimal precioPallet = Convert.ToDecimal(dgvCatalogo.CurrentRow.Cells["PrecioPallet"].Value);
+                int unidadesPorPallet = Convert.ToInt32(dgvCatalogo.CurrentRow.Cells["UnidadesPorPallet"].Value);
+
+                // Cantidad ingresada por el usuario (representa la cantidad de PALLETS)
+                int cantidadPallets = (int)numericUpDown1.Value;
+
+                if (cantidadPallets <= 0)
                 {
                     MessageBox.Show(GestorIdioma.GetInstance.TraducirMensaje("msg_CantidadMayorCero", "La cantidad debe ser mayor a 0."),
                                     GestorIdioma.GetInstance.TraducirMensaje("msg_Atencion", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                // CONVERSIÓN ARQUITECTÓNICA: Transformamos Pallets a Unidades para el Inventario final
+                int cantidadUnidadesFinales = cantidadPallets * unidadesPorPallet;
+
+                // Prorrateo del precio
+                decimal precioUnitarioReal = precioPallet / unidadesPorPallet;
+
                 var itemExistente = ordenActual.Detalles.FirstOrDefault(d => d.IdProducto == idProd);
-                if (itemExistente != null) itemExistente.CantidadSolicitada += cantidad;
-                else ordenActual.Detalles.Add(new DetalleOC { IdProducto = idProd, CantidadSolicitada = cantidad, PrecioAcordado = precio });
+                if (itemExistente != null)
+                {
+                    itemExistente.CantidadSolicitada += cantidadUnidadesFinales; // Suma unidades reales
+                }
+                else
+                {
+                    ordenActual.Detalles.Add(new DetalleOC
+                    {
+                        IdProducto = idProd,
+                        CantidadSolicitada = cantidadUnidadesFinales, // Impacta el stock correctamente después
+                        PrecioAcordado = precioUnitarioReal
+                    });
+                }
 
                 bindingCarrito.ResetBindings();
                 ActualizarTotal();

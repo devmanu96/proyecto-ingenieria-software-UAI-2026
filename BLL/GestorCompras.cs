@@ -6,77 +6,63 @@ using System.Data;
 
 namespace BLL
 {
-    public class GestorCompras : ISujeto
+    public class GestorCompras
     {
-        private RepositorioCatalogoProveedor repoCatalogo;
-        private RepositorioOrdenCompra repoOrdenCompra;
+        private RepositorioOrdenCompra repoOrden;
+        private RepositorioCompras repoGenericoCompras;
         private RepositorioSolicitud repoSolicitud;
-        private List<IObserver> ObserversAttached = new List<IObserver>();
 
         public GestorCompras()
         {
-            repoCatalogo = new RepositorioCatalogoProveedor();
-            repoOrdenCompra = new RepositorioOrdenCompra();
+            repoOrden = new RepositorioOrdenCompra();
+            repoGenericoCompras = new RepositorioCompras();
             repoSolicitud = new RepositorioSolicitud();
-
-            Attach(GestorBitacora.GetInstance);
         }
 
+        // --- MÉTODOS DE BANDEJA DE SOLICITUDES ---
         public DataView ObtenerSolicitudesPendientes()
         {
-            // Delegamos la responsabilidad al repositorio correspondiente
             return repoSolicitud.ObtenerSolicitudesPendientes();
         }
 
         public DataView ObtenerDetallesPorSolicitud(int idSolicitud)
         {
-            // Delegamos la responsabilidad al repositorio correspondiente
             return repoSolicitud.ObtenerDetallesPorSolicitud(idSolicitud);
         }
 
+        // --- MÉTODOS DE CATÁLOGO B2B ---
         public DataView ObtenerCatalogoB2B()
         {
-            return repoCatalogo.ObtenerVistaCatalogo();
+            return repoGenericoCompras.ObtenerCatalogoB2B();
         }
 
         public Dictionary<int, int> ObtenerMapaProveedoresTab()
         {
-            return repoCatalogo.MapearTabsConIdsProveedores();
+            return repoGenericoCompras.ObtenerMapaProveedoresTab();
         }
 
-        public void EmitirOrdenCompra(OrdenCompra nuevaOrden, int idSolicitudReferencia)
+        // --- MÉTODOS DE ORDEN DE COMPRA ---
+        public void EmitirOrdenCompra(OrdenCompra ordenActual, int idSolicitudReferencia)
         {
-            if (nuevaOrden.Detalles.Count == 0)
-                throw new Exception("La orden de compra debe contener al menos un pallet.");
+            if (ordenActual.Detalles == null || ordenActual.Detalles.Count == 0)
+                throw new Exception("No se puede emitir una orden de compra vacía.");
 
-            repoOrdenCompra.GuardarOrdenCompra(nuevaOrden, idSolicitudReferencia);
+            if (ordenActual.IdProveedor <= 0)
+                throw new Exception("Proveedor no válido.");
 
-            Usuario? usrActivo = SessionManager.getInstance.ObtenerUsuarioActivo();
-            if (usrActivo != null)
-            {
-                Notificar(usrActivo.Username, "LOG_EMITIO_OC");
-            }
+            repoOrden.GuardarOrdenCompra(ordenActual, idSolicitudReferencia);
         }
 
-        // ==========================================
-        //  Implementación de ISujeto
-        // ==========================================
-        public void Attach(IObserver observer)
+        // --- MÉTODOS PARA RECEPCIÓN (SOLUCIONA CS1061) ---
+        public DataView ObtenerOrdenesPendientesDeRecepcion()
         {
-            if (!ObserversAttached.Contains(observer)) ObserversAttached.Add(observer);
+            return repoOrden.ObtenerOrdenesPendientesDeRecepcion();
         }
 
-        public void Detach(IObserver observer)
+        public DataView ObtenerDetallesPorOrden(int idOrden)
         {
-            ObserversAttached.Remove(observer);
-        }
-
-        public void Notificar(string username, string accion)
-        {
-            foreach (IObserver item in ObserversAttached)
-            {
-                item.Update(username, accion);
-            }
+            if (idOrden <= 0) throw new ArgumentException("ID de Orden inválido.");
+            return repoOrden.ObtenerDetallesPorOrden(idOrden);
         }
     }
 }

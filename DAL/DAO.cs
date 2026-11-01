@@ -16,7 +16,7 @@ namespace DAL
 
         // Adaptadores Base y Compras
         private SqlDataAdapter daUsers, daBitacora, daPermiso, daPermisoRelacion, daIdioma, daTraduccion, daPerfilUsuario, daHistorialUsuario, daDVV, daProducto, daSolicitudAbastecimiento, daDetalleSolicitud, daProveedor, daCatalogoProveedor, daOrdenCompra, daDetalleOC;
-        private SqlDataAdapter daPresupuesto, daPagoEmitido, daFacturaProveedor, daRecepcion, daLoteBebida;
+        private SqlDataAdapter daPresupuesto, daPagoEmitido, daFacturaProveedor,daOfertaSugerida, daRecepcion, daLoteBebida;
 
         // Adaptadores Módulo Ventas
         private SqlDataAdapter daCliente, daVenta, daDetalleVenta, daCobro;
@@ -26,7 +26,7 @@ namespace DAL
 
         // Constructores de comandos Base y Compras
         private SqlCommandBuilder cbUsers, cbBitacora, cbPermiso, cbPermisoRelacion, cbIdioma, cbTraduccion, cbPerfilUsuario, cbHistorialUsuario, cbDVV, cbProducto, cbSolicitudAbastecimiento, cbDetalleSolicitud, cbProveedor, cbCatalogoProveedor, cbOrdenCompra, cbDetalleOC;
-        private SqlCommandBuilder cbPresupuesto, cbPagoEmitido, cbFacturaProveedor, cbRecepcion, cbLoteBebida;
+        private SqlCommandBuilder cbPresupuesto, cbPagoEmitido, cbFacturaProveedor,cbOfertaSugerida, cbRecepcion, cbLoteBebida;
 
         // CommandBuilders Módulo Ventas
         private SqlCommandBuilder cbCliente, cbVenta, cbDetalleVenta, cbCobro;
@@ -49,6 +49,7 @@ namespace DAL
             daProducto = new SqlDataAdapter("Select * From PRODUCTO", connectionString);
             daSolicitudAbastecimiento = new SqlDataAdapter("Select * From SOLICITUD_ABASTECIMIENTO", connectionString);
             daDetalleSolicitud = new SqlDataAdapter("Select * From DETALLE_SOLICITUD", connectionString);
+            daOfertaSugerida = new SqlDataAdapter("Select * From OFERTA_SUGERIDA", connectionString);
 
             daProveedor = new SqlDataAdapter("Select * From PROVEEDOR", connectionString);
             daCatalogoProveedor = new SqlDataAdapter("Select * From CATALOGO_PROVEEDOR", connectionString);
@@ -91,6 +92,7 @@ namespace DAL
             daFacturaProveedor.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daRecepcion.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             daLoteBebida.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+            daOfertaSugerida.MissingSchemaAction = MissingSchemaAction.AddWithKey;
 
             // MissingSchemaAction Ventas
             daCliente.MissingSchemaAction = MissingSchemaAction.AddWithKey;
@@ -127,6 +129,7 @@ namespace DAL
                 CargarTablaConEsquema(daFacturaProveedor, "FACTURA_PROVEEDOR", conn);
                 CargarTablaConEsquema(daRecepcion, "RECEPCION", conn);
                 CargarTablaConEsquema(daLoteBebida, "LOTE_BEBIDA", conn);
+                CargarTablaConEsquema(daOfertaSugerida, "OFERTA_SUGERIDA", conn);
 
                 // Cargar Esquemas Ventas
                 CargarTablaConEsquema(daCliente, "CLIENTE", conn);
@@ -160,6 +163,7 @@ namespace DAL
             cbFacturaProveedor = new SqlCommandBuilder(daFacturaProveedor);
             cbRecepcion = new SqlCommandBuilder(daRecepcion);
             cbLoteBebida = new SqlCommandBuilder(daLoteBebida);
+            cbOfertaSugerida = new SqlCommandBuilder(daOfertaSugerida);
 
             // CommandBuilders Ventas
             cbCliente = new SqlCommandBuilder(daCliente);
@@ -277,6 +281,7 @@ namespace DAL
             ConfigurarAutoincrementoTabla("FACTURA_PROVEEDOR", "IdFactura");
             ConfigurarAutoincrementoTabla("RECEPCION", "IdRecepcion");
             ConfigurarAutoincrementoTabla("LOTE_BEBIDA", "IdLote");
+            ConfigurarAutoincrementoTabla("OFERTA_SUGERIDA", "IdOferta");
 
             // Autoincrementos Ventas
             ConfigurarAutoincrementoTabla("CLIENTE", "IdCliente");
@@ -422,6 +427,7 @@ namespace DAL
                 PrepararAdaptador(daFacturaProveedor, cbFacturaProveedor);
                 PrepararAdaptador(daRecepcion, cbRecepcion);
                 PrepararAdaptador(daLoteBebida, cbLoteBebida);
+                PrepararAdaptador(daOfertaSugerida, cbOfertaSugerida);
 
                 // Preparar Adaptadores Ventas
                 PrepararAdaptador(daCliente, cbCliente);
@@ -453,6 +459,7 @@ namespace DAL
                 daFacturaProveedor.Update(mainDataSet, "FACTURA_PROVEEDOR");
                 daRecepcion.Update(mainDataSet, "RECEPCION");
                 daLoteBebida.Update(mainDataSet, "LOTE_BEBIDA");
+                daOfertaSugerida.Update(mainDataSet, "OFERTA_SUGERIDA");
 
                 // Módulo Ventas
                 daCliente.Update(mainDataSet, "CLIENTE");

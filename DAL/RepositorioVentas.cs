@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq; // Fundamental para la minería de datos
 using BE;
 
 namespace DAL
@@ -11,53 +12,51 @@ namespace DAL
         {
         }
 
-        // Se mantiene tu método original intacto
         public DataView ObtenerClientesActivos()
         {
             DataSet ds = DAO.GetInstance.ObtenerDataSet();
-            // Filtramos directamente sobre la tabla CLIENTE del DataSet en memoria
-            DataView dv = new DataView(ds.Tables["CLIENTE"]);
+            DataTable? dtCliente = ds.Tables["CLIENTE"];
+            if (dtCliente == null) return new DataView(); // Previene advertencias CS8602
+
+            DataView dv = new DataView(dtCliente);
             dv.RowFilter = "Activo = 1";
             return dv;
         }
 
-        // Método actualizado para recibir la lista de Detalles y la lista de Cobros
         public void RegistrarVentaCompleta(Venta nuevaVenta, List<DetalleVenta> detalles, List<Cobro> pagosIngresados)
         {
             DataSet ds = DAO.GetInstance.ObtenerDataSet();
 
-            // 1. Insertar Cabecera de la VENTA
-            DataTable dtVenta = ds.Tables["VENTA"];
-            DataRow rowVenta = dtVenta.NewRow();
+            DataTable? dtVenta = ds.Tables["VENTA"];
+            DataTable? dtDetalle = ds.Tables["DETALLE_VENTA"];
+            DataTable? dtProducto = ds.Tables["PRODUCTO"];
+            DataTable? dtCobro = ds.Tables["COBRO"];
 
+            if (dtVenta == null || dtDetalle == null || dtProducto == null || dtCobro == null)
+                throw new Exception("Faltan tablas del módulo de ventas en el DataSet.");
+
+            // 1. Insertar Cabecera de la VENTA
+            DataRow rowVenta = dtVenta.NewRow();
             rowVenta["IdCliente"] = nuevaVenta.IdCliente;
             rowVenta["IdUsuario"] = nuevaVenta.IdUsuario;
             rowVenta["FechaVenta"] = nuevaVenta.FechaVenta;
             rowVenta["MontoTotal"] = nuevaVenta.MontoTotal;
             rowVenta["Estado"] = nuevaVenta.Estado;
-
             dtVenta.Rows.Add(rowVenta);
 
-            // Obtenemos el IdVenta generado localmente por el DataTable para vincular los hijos
             int idVentaGenerado = Convert.ToInt32(rowVenta["IdVenta"]);
 
             // 2. Insertar DETALLES y descontar STOCK
-            DataTable dtDetalle = ds.Tables["DETALLE_VENTA"];
-            DataTable dtProducto = ds.Tables["PRODUCTO"];
-
             foreach (var detalle in detalles)
             {
-                // A. Insertar el detalle
                 DataRow rowDetalle = dtDetalle.NewRow();
                 rowDetalle["IdVenta"] = idVentaGenerado;
                 rowDetalle["IdProducto"] = detalle.IdProducto;
                 rowDetalle["Cantidad"] = detalle.Cantidad;
                 rowDetalle["PrecioUnitario"] = detalle.PrecioUnitario;
                 rowDetalle["Subtotal"] = detalle.Subtotal;
-
                 dtDetalle.Rows.Add(rowDetalle);
 
-                // B. Descontar el stock en la tabla PRODUCTO en memoria
                 DataRow[] filasProducto = dtProducto.Select($"IdProducto = '{detalle.IdProducto}'");
                 if (filasProducto.Length > 0)
                 {
@@ -67,9 +66,7 @@ namespace DAL
                 }
             }
 
-            // 3. Insertar Lista de COBROS (Múltiples métodos de pago)
-            DataTable dtCobro = ds.Tables["COBRO"];
-
+            // 3. Insertar Lista de COBROS
             foreach (var cobro in pagosIngresados)
             {
                 DataRow rowCobro = dtCobro.NewRow();
@@ -80,26 +77,55 @@ namespace DAL
                 rowCobro["NumeroTarjeta"] = string.IsNullOrEmpty(cobro.NumeroTarjeta) ? DBNull.Value : cobro.NumeroTarjeta;
                 rowCobro["Cuotas"] = cobro.Cuotas == 0 ? 1 : cobro.Cuotas;
                 rowCobro["NumeroComprobante"] = string.IsNullOrEmpty(cobro.NumeroComprobante) ? DBNull.Value : cobro.NumeroComprobante;
-
                 dtCobro.Rows.Add(rowCobro);
             }
 
-            // 4. Impactar todos los cambios (Venta, Detalles, Cobros y actualización de Productos) en SQL Server
             DAO.GetInstance.SubirCambiosBD();
         }
 
-        // Nuevo método para consumir la vista VISTA_HISTORIAL_VENTAS
         public DataView ObtenerHistorialVentas()
         {
             DataSet ds = DAO.GetInstance.ObtenerDataSet();
-
-            // Verificamos que la vista exista en el DataSet (asegúrate de que tu DAO haga el 'Fill' de esta vista)
             if (ds.Tables.Contains("VISTA_HISTORIAL_VENTAS"))
             {
-                return ds.Tables["VISTA_HISTORIAL_VENTAS"].DefaultView;
+                return ds.Tables["VISTA_HISTORIAL_VENTAS"]!.DefaultView;
             }
+            return new DataView(); // Previene error si la tabla es nula
+        }
 
-            return null;
+        // =========================================================
+        // MÉTODOS AGREGADOS PARA EL MOTOR DE OFERTAS (ARREGLA CS1061)
+        // =========================================================
+
+        public int ContarVentasTotales()
+        {
+            DataTable? dtVenta = DAO.GetInstance.ObtenerDataSet().Tables["VENTA"];
+            return dtVenta != null ? dtVenta.Rows.Count : 0;
+        }
+
+        public string? ObtenerProductoMasAsociado(string idProductoAncla)
+        {
+            DataTable? dtDetalle = DAO.GetInstance.ObtenerDataSet().Tables["DETALLE_VENTA"];
+            if (dtDetalle == null || dtDetalle.Rows.Count == 0) return null;
+
+            // 1. Encontramos los IDs de las Ventas donde el cliente compró el producto Ancla
+            var idsVentasDelAncla = dtDetalle.AsEnumerable()
+                .Where(row => row.Field<string>("IdProducto") == idProductoAncla)
+                .Select(row => row.Field<int>("IdVenta"))
+                .Distinct()
+                .ToList();
+
+            if (!idsVentasDelAncla.Any()) return null;
+
+            // 2. Buscamos qué OTRO producto aparece con más frecuencia en ESOS mismos tickets
+            var idProductoGancho = dtDetalle.AsEnumerable()
+                .Where(row => idsVentasDelAncla.Contains(row.Field<int>("IdVenta")) && row.Field<string>("IdProducto") != idProductoAncla)
+                .GroupBy(row => row.Field<string>("IdProducto"))
+                .OrderByDescending(grupo => grupo.Count()) // Ordena por el más comprado junto al ancla
+                .Select(grupo => grupo.Key)
+                .FirstOrDefault();
+
+            return idProductoGancho;
         }
     }
 }

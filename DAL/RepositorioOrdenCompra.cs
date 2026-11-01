@@ -20,8 +20,6 @@ namespace DAL
 
             // 1. Cabecera (ORDEN_COMPRA)
             DataRow rowOC = dtOC.NewRow();
-
-            // CORRECCIÓN APLICADA: Mapeamos a la columna real 'IdProveedor' de la BD
             rowOC["IdProveedor"] = nuevaOrden.IdProveedor;
             rowOC["FechaEmision"] = nuevaOrden.FechaEmision;
             rowOC["Estado"] = nuevaOrden.Estado;
@@ -48,6 +46,31 @@ namespace DAL
             }
 
             dao.SubirCambiosBD();
+        }
+
+        // =========================================================
+        // MÉTODOS PARA RECEPCIÓN DE MERCADERÍA (SOLUCIÓN ERRORES)
+        // =========================================================
+
+        public DataView ObtenerOrdenesPendientesDeRecepcion()
+        {
+            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["ORDEN_COMPRA"];
+            if (dt == null) throw new Exception("La tabla ORDEN_COMPRA no está en el DataSet.");
+
+            DataView dv = new DataView(dt);
+            // Filtramos las órdenes que ya fueron emitidas pero aún no se reciben físicamente
+            dv.RowFilter = "Estado = 'Emitida' OR Estado = 'Pagada'";
+            return dv;
+        }
+
+        public DataView ObtenerDetallesPorOrden(int idOrden)
+        {
+            DataTable? dt = DAO.GetInstance.ObtenerDataSet().Tables["DETALLE_OC"];
+            if (dt == null) throw new Exception("La tabla DETALLE_OC no está en el DataSet.");
+
+            DataView dv = new DataView(dt);
+            dv.RowFilter = $"IdOrden = {idOrden}";
+            return dv;
         }
     }
 }
