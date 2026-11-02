@@ -253,6 +253,8 @@ CREATE TABLE OFERTA_SUGERIDA (
     CONSTRAINT FK_Oferta_Lote FOREIGN KEY (IdLote) REFERENCES LOTE_BEBIDA(IdLote),
     CONSTRAINT FK_Oferta_ProductoAsociado FOREIGN KEY (IdProductoAsociado) REFERENCES PRODUCTO(IdProducto)
 );
+GO
+
 CREATE VIEW VISTA_HISTORIAL_VENTAS AS
 SELECT 
     v.IdVenta,
@@ -270,7 +272,7 @@ SELECT
 FROM VENTA v
 INNER JOIN CLIENTE c ON v.IdCliente = c.IdCliente
 INNER JOIN Usuario u ON v.IdUsuario = u.ID;
-
+GO
 -- =========================================================================
 -- INSERCIÓN DE DATOS DE PRUEBA (CLIENTES BASE)
 -- =========================================================================
@@ -542,7 +544,7 @@ SELECT
     @IdRecepcionAjuste, 
     IdProducto, 
     'LT-INICIAL-' + CodigoSKU,           -- Genera lotes como "LT-INICIAL-SKU-011"
-    DATEADD(month, 6, GETDATE()),        -- Les da 6 meses de vida útil por defecto
+    DATEADD(month, 3, GETDATE()),        -- Les da 6 meses de vida útil por defecto
     StockActual,                         -- La cantidad original ingresada
     StockActual
 FROM PRODUCTO 
@@ -1221,3 +1223,432 @@ INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto) VALUES
 ('PT', 'msg_ProductoRegistrado', 'Produto registrado com sucesso.'),
 ('PT', 'msg_ConfirmarBajaProd', 'Tem certeza de que deseja desativar este produto do catálogo?'),
 ('PT', 'msg_ProductoBajaExitosa', 'Produto desativado com sucesso.');
+
+
+GO
+
+-- Variables de control para el bucle
+DECLARE @TotalVentas INT = 200;
+DECLARE @i INT = 1;
+
+-- Obtenemos los ID de los vendedores
+DECLARE @IdVendedor1 UNIQUEIDENTIFIER = (SELECT ID FROM Usuario WHERE Username = 'vendedor1');
+DECLARE @IdVendedor2 UNIQUEIDENTIFIER = (SELECT ID FROM Usuario WHERE Username = 'vendedor2');
+
+-- Obtenemos el ID del Consumidor Final (Por orden de inserción en tu script, es el IdCliente = 1)
+DECLARE @IdClienteConsumidorFinal INT = (SELECT TOP 1 IdCliente FROM CLIENTE WHERE RazonSocial = 'Consumidor Final');
+
+-- Tabla temporal en memoria para facilitar la selección aleatoria de productos cargados
+DECLARE @Productos TABLE (RowId INT IDENTITY(1,1), IdProducto VARCHAR(50), Precio DECIMAL(18,2));
+INSERT INTO @Productos (IdProducto, Precio) 
+SELECT IdProducto, PrecioUnitarioLocal FROM PRODUCTO WHERE Activo = 1;
+
+DECLARE @MaxProd INT = (SELECT COUNT(*) FROM @Productos);
+
+BEGIN TRANSACTION;
+
+WHILE @i <= @TotalVentas
+BEGIN
+    -- 1. Alternar entre vendedor 1 y vendedor 2
+    DECLARE @VendedorActual UNIQUEIDENTIFIER = CASE WHEN @i % 2 = 0 THEN @IdVendedor1 ELSE @IdVendedor2 END;
+    
+    -- Generar una fecha aleatoria en los últimos 30 días para darle realismo a la bitácora
+    DECLARE @DiasAtras INT = (ABS(CHECKSUM(NEWID())) % 30);
+    DECLARE @HorasAtras INT = (ABS(CHECKSUM(NEWID())) % 24);
+    DECLARE @FechaVenta DATETIME = DATEADD(HOUR, -@HorasAtras, DATEADD(DAY, -@DiasAtras, GETDATE()));
+
+    -- 2. Crear Venta Cabecera (Inicializamos MontoTotal en 0)
+    INSERT INTO VENTA (IdCliente, IdUsuario, FechaVenta, MontoTotal, Estado)
+    VALUES (@IdClienteConsumidorFinal, @VendedorActual, @FechaVenta, 0, 'Pagada');
+    
+    DECLARE @IdVentaActual INT = SCOPE_IDENTITY();
+    
+    -- 3. Generar Detalles de Venta (entre 1 y 3 productos distintos por venta)[cite: 1]
+    DECLARE @CantProductos INT = (ABS(CHECKSUM(NEWID())) % 3) + 1;
+    DECLARE @j INT = 1;
+    DECLARE @TotalVentaActual DECIMAL(18,2) = 0;
+    
+    WHILE @j <= @CantProductos
+    BEGIN
+        -- Seleccionar un producto aleatorio
+        DECLARE @RandomProdIndex INT = (ABS(CHECKSUM(NEWID())) % @MaxProd) + 1;
+        DECLARE @IdProdSeleccionado VARCHAR(50);
+        DECLARE @PrecioProdSeleccionado DECIMAL(18,2);
+        
+        SELECT @IdProdSeleccionado = IdProducto, @PrecioProdSeleccionado = Precio 
+        FROM @Productos WHERE RowId = @RandomProdIndex;
+        
+        -- Comprar entre 1 y 5 unidades de este producto
+        DECLARE @CantidadComprada INT = (ABS(CHECKSUM(NEWID())) % 5) + 1; 
+        DECLARE @Subtotal DECIMAL(18,2) = @CantidadComprada * @PrecioProdSeleccionado;
+        
+        -- Insertar Detalle[cite: 1]
+        INSERT INTO DETALLE_VENTA (IdVenta, IdProducto, Cantidad, PrecioUnitario, Subtotal)
+        VALUES (@IdVentaActual, @IdProdSeleccionado, @CantidadComprada, @PrecioProdSeleccionado, @Subtotal);
+        
+        SET @TotalVentaActual = @TotalVentaActual + @Subtotal;
+        SET @j = @j + 1;
+    END
+    
+    -- 4. Actualizar el Monto Total final de la Venta[cite: 1]
+    UPDATE VENTA 
+    SET MontoTotal = @TotalVentaActual 
+    WHERE IdVenta = @IdVentaActual;
+    
+    -- 5. Registrar Cobro en Efectivo[cite: 1]
+    INSERT INTO COBRO (IdVenta, FechaCobro, MontoCobrado, MetodoPago, NumeroTarjeta, Cuotas, NumeroComprobante)
+    VALUES (@IdVentaActual, @FechaVenta, @TotalVentaActual, 'Efectivo', NULL, 1, 'TKT-FINAL-' + CAST(@IdVentaActual AS VARCHAR));
+    
+    SET @i = @i + 1;
+END
+
+COMMIT TRANSACTION;
+PRINT '200 Ventas generadas exitosamente.';
+GO
+
+
+BEGIN TRANSACTION;
+
+-- 1. Crear una Orden de Compra para justificar el ingreso de estos lotes
+-- Usamos el IdProveedor = 1 (Coca-Cola FEMSA, según tu script) como ejemplo general
+INSERT INTO ORDEN_COMPRA (IdProveedor, FechaEmision, Estado) 
+VALUES (1, GETDATE(), 'Pagada');
+
+DECLARE @IdOrdenVencimiento INT = SCOPE_IDENTITY();
+
+-- 2. Crear la Recepción asociada a esa Orden de Compra
+INSERT INTO RECEPCION (IdOrden, NumeroRemito, FechaIngreso) 
+VALUES (@IdOrdenVencimiento, 'REMITO-TEST-VENC', GETDATE());
+
+DECLARE @IdRecepcionVencimiento INT = SCOPE_IDENTITY();
+
+-- 3. Calcular la fecha de vencimiento (20 días a futuro)
+DECLARE @FechaVenc DATETIME = DATEADD(DAY, 20, GETDATE());
+
+-- 4. Insertar los lotes utilizando productos reales de tu tabla PRODUCTO
+INSERT INTO LOTE_BEBIDA (IdRecepcion, IdProducto, NumeroLote, FechaVencimiento, CantidadRecibida, StockActual) 
+VALUES 
+-- Lote 1: Coca-Cola Lata 473ml
+(@IdRecepcionVencimiento, '7790895001999', 'LT-VENC20-001', @FechaVenc, 200, 200),
+
+-- Lote 2: Manaos Pomelo 2.25L
+(@IdRecepcionVencimiento, '7798099881038', 'LT-VENC20-002', @FechaVenc, 150, 120),
+
+-- Lote 3: Baggio Multifruta 1L
+(@IdRecepcionVencimiento, '7790503000001', 'LT-VENC20-003', @FechaVenc, 80, 80),
+
+-- Lote 4: 7Up Regular 1.5L
+(@IdRecepcionVencimiento, '7791813421112', 'LT-VENC20-004', @FechaVenc, 100, 45),
+
+-- Lote 5: Coca-Cola Zero 2.25L
+(@IdRecepcionVencimiento, '7790895005555', 'LT-VENC20-005', @FechaVenc, 60, 60),
+
+-- Lote 6: Manaos Naranja 2.25L
+(@IdRecepcionVencimiento, '7798099881045', 'LT-VENC20-006', @FechaVenc, 300, 250),
+
+-- Lote 7: Baggio Manzana 1L
+(@IdRecepcionVencimiento, '7790503000003', 'LT-VENC20-007', @FechaVenc, 50, 50);
+
+COMMIT TRANSACTION;
+PRINT '7 lotes próximos a vencer generados exitosamente.';
+GO
+
+-- =========================================================
+-- TRADUCCIONES AL ESPAÑOL (ES) - Nuevos Módulos
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('ES', 'VisorTicketsUI_Titulo', 'Visor de Tickets Emitidos'),
+('ES', 'msg_ArchivoNoExiste', 'El archivo físico ya no existe o fue movido.'),
+('ES', 'grid_NombreArchivo', 'Nombre del Archivo'),
+('ES', 'grid_FechaEmision', 'Fecha de Emisión'),
+('ES', 'FormMockTarjetaUI', 'Pago con Tarjeta'),
+('ES', 'msg_DatosTarjetaVacios', 'Complete los datos obligatorios (Titular y Número).'),
+('ES', 'lblMontoTarjeta', 'Monto a cobrar:'),
+('ES', 'lblTitular', 'Nombre del Titular:'),
+('ES', 'lblNumeroTarjeta', 'Número de Tarjeta:'),
+('ES', 'lblVencimiento', 'Vencimiento:'),
+('ES', 'lblCVV', 'Código CVV:'),
+('ES', 'grpTipoTarjeta', 'Tipo de Tarjeta'),
+('ES', 'lblCuotas', 'Cuotas:'),
+('ES', 'btnAceptar', 'Aceptar'),
+('ES', 'btnCancelar', 'Cancelar'),
+('ES', 'HistorialVentasUI', 'Historial de Ventas'),
+('ES', 'btnActualizar', 'Actualizar Historial'),
+('ES', 'grid_FechaVenta', 'Fecha'),
+('ES', 'grid_Cliente', 'Cliente'),
+('ES', 'grid_Vendedor', 'Vendedor'),
+('ES', 'grid_MontoTotal', 'Monto Total'),
+('ES', 'grid_PagosCombinados', 'Detalle de Pagos'),
+('ES', 'GestionOfertasInteligentesUI', 'Gestor de Promociones Inteligentes'),
+('ES', 'lblTituloUI_Ofertas', 'Bandeja de Recomendaciones (FEFO)'),
+('ES', 'btnEjecutarMotor', 'Ejecutar Motor Analítico'),
+('ES', 'lblTituloAjuste', 'Ajustar Decisión de la Propuesta:'),
+('ES', 'btnAprobarOferta', 'Aprobar Oferta'),
+('ES', 'btnDescartarOferta', 'Descartar'),
+('ES', 'msg_MotorCompletado', 'El motor analítico ha terminado de procesar los lotes y el historial de ventas.'),
+('ES', 'msg_TituloCompletado', 'Análisis Completado'),
+('ES', 'grid_IdOferta', 'ID'),
+('ES', 'grid_PropuestaComercial', 'Propuesta Comercial'),
+('ES', 'grid_DescuentoSugerido', 'Descuento'),
+('ES', 'lbl_SeleccionePropuesta', 'Seleccione una propuesta de la grilla...'),
+('ES', 'msg_OfertaAprobada', 'Oferta Aprobada con {0}% de descuento. Ya está disponible para los vendedores.'),
+('ES', 'msg_TituloOfertaActiva', 'Oferta Activa'),
+('ES', 'msg_OfertaDescartada', 'La sugerencia del motor ha sido descartada.'),
+('ES', 'msg_TituloOfertaDescartada', 'Oferta Rechazada'),
+('ES', 'frmAuditoria_Titulo', 'Gestión y Auditoría de Ofertas'),
+('ES', 'btnEliminarOfertaAudit', 'Eliminar Oferta Seleccionada'),
+('ES', 'msg_ConfirmarEliminarOferta', '¿Está seguro que desea eliminar definitivamente la oferta #{0} para el producto {1}?'),
+('ES', 'msg_OfertaEliminadaExito', 'Oferta eliminada de la base de datos.'),
+('ES', 'ProveedoresUI_Text', 'ABM Proveedores (JSON)'),
+('ES', 'ProveedoresUI_Titulo', 'Gestión de Proveedores (Persistencia JSON)'),
+('ES', 'lblCUIT', 'CUIT'),
+('ES', 'lblRazonSocial', 'Razón Social'),
+('ES', 'lblCondicion', 'Condición Comercial'),
+('ES', 'btnGuardarProv', 'Guardar Proveedor'),
+('ES', 'btnLimpiarSeleccion', 'Limpiar Selección'),
+('ES', 'btnEliminarProv', 'Eliminar Proveedor'),
+('ES', 'btnMigrarSQL', 'Importar Datos de Prueba (SQL -> JSON)'),
+('ES', 'msg_ProvGuardadoExito', 'Proveedor guardado en el archivo JSON exitosamente.'),
+('ES', 'msg_ProvActualizadoExito', 'Proveedor actualizado en el archivo JSON exitosamente.'),
+('ES', 'msg_ConfirmarBajaProv', '¿Está seguro que desea dar de baja este proveedor?'),
+('ES', 'msg_SelecProvEliminar', 'Seleccione un proveedor de la grilla para eliminar.'),
+('ES', 'msg_AvisoMigracion', '¿Desea importar los proveedores de la Base de Datos SQL al archivo JSON?' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) + '¡ATENCIÓN! Esto sobrescribirá los datos del archivo local actual.'),
+('ES', 'msg_TituloMigracion', 'Migración SQL -> JSON'),
+('ES', 'msg_ExitoMigracion', '¡Migración completada! Los proveedores de prueba ahora viven en el archivo JSON.'),
+('ES', 'msg_ErrorMigracion', 'Error de Migración')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
+
+-- =========================================================
+-- TRADUCCIONES AL INGLÉS (EN) - Nuevos Módulos
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('EN', 'VisorTicketsUI_Titulo', 'Issued Tickets Viewer'),
+('EN', 'msg_ArchivoNoExiste', 'The physical file no longer exists or was moved.'),
+('EN', 'grid_NombreArchivo', 'File Name'),
+('EN', 'grid_FechaEmision', 'Issue Date'),
+('EN', 'FormMockTarjetaUI', 'Credit/Debit Card Payment'),
+('EN', 'msg_DatosTarjetaVacios', 'Please fill in the required fields (Cardholder and Number).'),
+('EN', 'lblMontoTarjeta', 'Amount to charge:'),
+('EN', 'lblTitular', 'Cardholder Name:'),
+('EN', 'lblNumeroTarjeta', 'Card Number:'),
+('EN', 'lblVencimiento', 'Expiration Date:'),
+('EN', 'lblCVV', 'CVV Code:'),
+('EN', 'grpTipoTarjeta', 'Card Type'),
+('EN', 'lblCuotas', 'Installments:'),
+('EN', 'btnAceptar', 'Accept'),
+('EN', 'btnCancelar', 'Cancel'),
+('EN', 'HistorialVentasUI', 'Sales History'),
+('EN', 'btnActualizar', 'Update History'),
+('EN', 'grid_FechaVenta', 'Date'),
+('EN', 'grid_Cliente', 'Customer'),
+('EN', 'grid_Vendedor', 'Seller'),
+('EN', 'grid_MontoTotal', 'Total Amount'),
+('EN', 'grid_PagosCombinados', 'Payment Details'),
+('EN', 'GestionOfertasInteligentesUI', 'Smart Promotions Manager'),
+('EN', 'lblTituloUI_Ofertas', 'Recommendations Inbox (FEFO)'),
+('EN', 'btnEjecutarMotor', 'Execute Analytical Engine'),
+('EN', 'lblTituloAjuste', 'Adjust Proposal Decision:'),
+('EN', 'btnAprobarOferta', 'Approve Offer'),
+('EN', 'btnDescartarOferta', 'Discard'),
+('EN', 'msg_MotorCompletado', 'The analytical engine has finished processing the batches and sales history.'),
+('EN', 'msg_TituloCompletado', 'Analysis Completed'),
+('EN', 'grid_IdOferta', 'ID'),
+('EN', 'grid_PropuestaComercial', 'Commercial Proposal'),
+('EN', 'grid_DescuentoSugerido', 'Discount'),
+('EN', 'lbl_SeleccionePropuesta', 'Select a proposal from the grid...'),
+('EN', 'msg_OfertaAprobada', 'Offer Approved with a {0}% discount. It is now available to sellers.'),
+('EN', 'msg_TituloOfertaActiva', 'Active Offer'),
+('EN', 'msg_OfertaDescartada', 'The engine''s suggestion has been discarded.'),
+('EN', 'msg_TituloOfertaDescartada', 'Offer Rejected'),
+('EN', 'frmAuditoria_Titulo', 'Offer Management & Auditing'),
+('EN', 'btnEliminarOfertaAudit', 'Delete Selected Offer'),
+('EN', 'msg_ConfirmarEliminarOferta', 'Are you sure you want to permanently delete offer #{0} for product {1}?'),
+('EN', 'msg_OfertaEliminadaExito', 'Offer successfully deleted from the database.'),
+('EN', 'ProveedoresUI_Text', 'Supplier CRUD (JSON)'),
+('EN', 'ProveedoresUI_Titulo', 'Supplier Management (JSON Persistence)'),
+('EN', 'lblCUIT', 'Tax ID (CUIT)'),
+('EN', 'lblRazonSocial', 'Company Name'),
+('EN', 'lblCondicion', 'Commercial Condition'),
+('EN', 'btnGuardarProv', 'Save Supplier'),
+('EN', 'btnLimpiarSeleccion', 'Clear Selection'),
+('EN', 'btnEliminarProv', 'Delete Supplier'),
+('EN', 'btnMigrarSQL', 'Import Test Data (SQL -> JSON)'),
+('EN', 'msg_ProvGuardadoExito', 'Supplier successfully saved in the JSON file.'),
+('EN', 'msg_ProvActualizadoExito', 'Supplier successfully updated in the JSON file.'),
+('EN', 'msg_ConfirmarBajaProv', 'Are you sure you want to deactivate this supplier?'),
+('EN', 'msg_SelecProvEliminar', 'Please select a supplier from the grid to delete.'),
+('EN', 'msg_AvisoMigracion', 'Do you want to import suppliers from the SQL Database to the JSON file?' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) + 'WARNING! This will overwrite the current local file data.'),
+('EN', 'msg_TituloMigracion', 'SQL -> JSON Migration'),
+('EN', 'msg_ExitoMigracion', 'Migration completed! Test suppliers now live in the JSON file.'),
+('EN', 'msg_ErrorMigracion', 'Migration Error')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
+
+-- =========================================================
+-- TRADUCCIONES AL PORTUGUÉS (PT) - Nuevos Módulos
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('PT', 'VisorTicketsUI_Titulo', 'Visualizador de Tickets Emitidos'),
+('PT', 'msg_ArchivoNoExiste', 'O arquivo físico não existe mais ou foi movido.'),
+('PT', 'grid_NombreArchivo', 'Nome do Arquivo'),
+('PT', 'grid_FechaEmision', 'Data de Emissão'),
+('PT', 'FormMockTarjetaUI', 'Pagamento com Cartão'),
+('PT', 'msg_DatosTarjetaVacios', 'Preencha os dados obrigatórios (Titular e Número).'),
+('PT', 'lblMontoTarjeta', 'Valor a cobrar:'),
+('PT', 'lblTitular', 'Nome do Titular:'),
+('PT', 'lblNumeroTarjeta', 'Número do Cartão:'),
+('PT', 'lblVencimiento', 'Data de Validade:'),
+('PT', 'lblCVV', 'Código CVV:'),
+('PT', 'grpTipoTarjeta', 'Tipo de Cartão'),
+('PT', 'lblCuotas', 'Parcelas:'),
+('PT', 'btnAceptar', 'Aceitar'),
+('PT', 'btnCancelar', 'Cancelar'),
+('PT', 'HistorialVentasUI', 'Histórico de Vendas'),
+('PT', 'btnActualizar', 'Atualizar Histórico'),
+('PT', 'grid_FechaVenta', 'Data'),
+('PT', 'grid_Cliente', 'Cliente'),
+('PT', 'grid_Vendedor', 'Vendedor'),
+('PT', 'grid_MontoTotal', 'Valor Total'),
+('PT', 'grid_PagosCombinados', 'Detalhes de Pagamento'),
+('PT', 'GestionOfertasInteligentesUI', 'Gestor de Promoções Inteligentes'),
+('PT', 'lblTituloUI_Ofertas', 'Caixa de Recomendações (FEFO)'),
+('PT', 'btnEjecutarMotor', 'Executar Motor Analítico'),
+('PT', 'lblTituloAjuste', 'Ajustar Decisão da Proposta:'),
+('PT', 'btnAprobarOferta', 'Aprovar Oferta'),
+('PT', 'btnDescartarOferta', 'Descartar'),
+('PT', 'msg_MotorCompletado', 'O motor analítico terminou de processar os lotes e o histórico de vendas.'),
+('PT', 'msg_TituloCompletado', 'Análise Concluída'),
+('PT', 'grid_IdOferta', 'ID'),
+('PT', 'grid_PropuestaComercial', 'Proposta Comercial'),
+('PT', 'grid_DescuentoSugerido', 'Desconto'),
+('PT', 'lbl_SeleccionePropuesta', 'Selecione uma proposta na grade...'),
+('PT', 'msg_OfertaAprobada', 'Oferta Aprovada com {0}% de desconto. Já está disponível para os vendedores.'),
+('PT', 'msg_TituloOfertaActiva', 'Oferta Ativa'),
+('PT', 'msg_OfertaDescartada', 'A sugestão do motor foi descartada.'),
+('PT', 'msg_TituloOfertaDescartada', 'Oferta Rejeitada'),
+('PT', 'frmAuditoria_Titulo', 'Gestão e Auditoria de Ofertas'),
+('PT', 'btnEliminarOfertaAudit', 'Excluir Oferta Selecionada'),
+('PT', 'msg_ConfirmarEliminarOferta', 'Tem certeza de que deseja excluir permanentemente a oferta #{0} para o produto {1}?'),
+('PT', 'msg_OfertaEliminadaExito', 'Oferta excluída do banco de dados com sucesso.'),
+('PT', 'ProveedoresUI_Text', 'CRUD Fornecedores (JSON)'),
+('PT', 'ProveedoresUI_Titulo', 'Gestão de Fornecedores (Persistência JSON)'),
+('PT', 'lblCUIT', 'CNPJ / CUIT'),
+('PT', 'lblRazonSocial', 'Razão Social'),
+('PT', 'lblCondicion', 'Condição Comercial'),
+('PT', 'btnGuardarProv', 'Salvar Fornecedor'),
+('PT', 'btnLimpiarSeleccion', 'Limpar Seleção'),
+('PT', 'btnEliminarProv', 'Excluir Fornecedor'),
+('PT', 'btnMigrarSQL', 'Importar Dados de Teste (SQL -> JSON)'),
+('PT', 'msg_ProvGuardadoExito', 'Fornecedor salvo no arquivo JSON com sucesso.'),
+('PT', 'msg_ProvActualizadoExito', 'Fornecedor atualizado no arquivo JSON com sucesso.'),
+('PT', 'msg_ConfirmarBajaProv', 'Tem certeza de que deseja desativar este fornecedor?'),
+('PT', 'msg_SelecProvEliminar', 'Selecione um fornecedor na grade para excluir.'),
+('PT', 'msg_AvisoMigracion', 'Deseja importar os fornecedores do Banco de Dados SQL para o arquivo JSON?' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) + 'ATENÇÃO! Isso substituirá os dados atuais do arquivo local.'),
+('PT', 'msg_TituloMigracion', 'Migração SQL -> JSON'),
+('PT', 'msg_ExitoMigracion', 'Migração concluída! Os fornecedores de teste agora estão no arquivo JSON.'),
+('PT', 'msg_ErrorMigracion', 'Erro de Migração')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
+
+-- =========================================================
+-- TRADUCCIONES AL ESPAÑOL (ES) - RecepcionMercaderiaUI
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('ES', 'RecepcionMercaderiaUI', 'Recepción de Mercadería'),
+('ES', 'lblTituloRecepcion', 'Paso 1: Seleccione la OC que acaba de llegar'),
+('ES', 'lblRemitoRecepcion', 'Paso 2: Ingrese el Nro. de Remito Papel'),
+('ES', 'lblInstruccionesRecepcion', 'Paso 3: Complete Lote y Vencimiento en las celdas amarillas'),
+('ES', 'btnConfirmarIngreso', 'Confirmar Ingreso'),
+('ES', 'grid_IdOrden', 'N° Orden'),
+('ES', 'grid_LoteIngresado', 'Lote Ingresado'),
+('ES', 'grid_FechaVto', 'Fecha de Vencimiento'),
+('ES', 'grid_CantEsperada', 'Cant. Esperada'),
+('ES', 'msg_ValidacionRemito', 'Debe ingresar el número de remito físico entregado por el transportista.'),
+('ES', 'msg_ValidacionLoteVto', 'Falta ingresar el Lote o Vencimiento para el producto {0}.'),
+('ES', 'msg_ErrorCarga', 'Error de Carga'),
+('ES', 'msg_FormatoFechaVto', 'El formato de fecha de vencimiento es inválido para {0}. Use DD/MM/YYYY.'),
+('ES', 'msg_ErrorFormato', 'Error de Formato'),
+('ES', 'msg_RecepcionExitosa', 'Mercadería ingresada al inventario y Lotes creados exitosamente.'),
+('ES', 'msg_ExitoOperativo', 'Éxito Operativo'),
+('ES', 'msg_ErrorSistema', 'Error del Sistema')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
+
+-- =========================================================
+-- TRADUCCIONES AL INGLÉS (EN) - RecepcionMercaderiaUI
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('EN', 'RecepcionMercaderiaUI', 'Merchandise Reception'),
+('EN', 'lblTituloRecepcion', 'Step 1: Select the arriving PO'),
+('EN', 'lblRemitoRecepcion', 'Step 2: Enter the physical Receipt Number'),
+('EN', 'lblInstruccionesRecepcion', 'Step 3: Complete Batch and Expiration in the yellow cells'),
+('EN', 'btnConfirmarIngreso', 'Confirm Reception'),
+('EN', 'grid_IdOrden', 'Order No.'),
+('EN', 'grid_LoteIngresado', 'Entered Batch'),
+('EN', 'grid_FechaVto', 'Expiration Date'),
+('EN', 'grid_CantEsperada', 'Expected Qty'),
+('EN', 'msg_ValidacionRemito', 'You must enter the physical receipt number provided by the carrier.'),
+('EN', 'msg_ValidacionLoteVto', 'Batch or Expiration date is missing for product {0}.'),
+('EN', 'msg_ErrorCarga', 'Entry Error'),
+('EN', 'msg_FormatoFechaVto', 'Invalid expiration date format for {0}. Use DD/MM/YYYY.'),
+('EN', 'msg_ErrorFormato', 'Format Error'),
+('EN', 'msg_RecepcionExitosa', 'Merchandise successfully added to inventory and Batches created.'),
+('EN', 'msg_ExitoOperativo', 'Operational Success'),
+('EN', 'msg_ErrorSistema', 'System Error')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
+
+-- =========================================================
+-- TRADUCCIONES AL PORTUGUÉS (PT) - RecepcionMercaderiaUI
+-- =========================================================
+INSERT INTO Traduccion (CodigoIdioma, KeyEtiqueta, Texto)
+SELECT CodigoIdioma, KeyEtiqueta, Texto FROM (VALUES 
+('PT', 'RecepcionMercaderiaUI', 'Recepção de Mercadorias'),
+('PT', 'lblTituloRecepcion', 'Passo 1: Selecione a OC que acaba de chegar'),
+('PT', 'lblRemitoRecepcion', 'Passo 2: Insira o número do Recibo Físico'),
+('PT', 'lblInstruccionesRecepcion', 'Passo 3: Preencha Lote e Validade nas células amarelas'),
+('PT', 'btnConfirmarIngreso', 'Confirmar Recepção'),
+('PT', 'grid_IdOrden', 'N° Ordem'),
+('PT', 'grid_LoteIngresado', 'Lote Inserido'),
+('PT', 'grid_FechaVto', 'Data de Validade'),
+('PT', 'grid_CantEsperada', 'Qtd. Esperada'),
+('PT', 'msg_ValidacionRemito', 'Você deve inserir o número do recibo físico fornecido pela transportadora.'),
+('PT', 'msg_ValidacionLoteVto', 'Falta inserir o Lote ou Validade para o produto {0}.'),
+('PT', 'msg_ErrorCarga', 'Erro de Preenchimento'),
+('PT', 'msg_FormatoFechaVto', 'Formato de data de validade inválido para {0}. Use DD/MM/YYYY.'),
+('PT', 'msg_ErrorFormato', 'Erro de Formato'),
+('PT', 'msg_RecepcionExitosa', 'Mercadoria inserida no inventário e Lotes criados com sucesso.'),
+('PT', 'msg_ExitoOperativo', 'Sucesso Operacional'),
+('PT', 'msg_ErrorSistema', 'Erro do Sistema')
+) AS DatosNuevos(CodigoIdioma, KeyEtiqueta, Texto)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Traduccion T 
+    WHERE T.CodigoIdioma = DatosNuevos.CodigoIdioma 
+    AND T.KeyEtiqueta = DatosNuevos.KeyEtiqueta
+);
