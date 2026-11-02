@@ -26,82 +26,6 @@ namespace BLL
             repoProducto = new RepositorioProducto();
         }
 
-        //public List<OfertaSugerida> AnalizarYGenerarOfertas()
-        //{
-        //    List<OfertaSugerida> nuevasOfertas = new List<OfertaSugerida>();
-
-        //    // 1. Obtener todos los lotes con stock > 0
-        //    List<LoteBebida> lotesActivos = repoLotes.ObtenerLotesConStock();
-
-        //    // 2. Identificar "Productos Ancla": Lotes en riesgo de vencer
-        //    var lotesEnRiesgo = lotesActivos
-        //        .Where(l => l.DiasParaVencimiento <= DIAS_ALERTA_VENCIMIENTO)
-        //        .ToList();
-
-        //    if (!lotesEnRiesgo.Any())
-        //        return nuevasOfertas; // Almacén sano, no se generan ofertas
-
-        //    // 3. Evaluar Madurez de Datos (Solución al Arranque en Frío)
-        //    int totalVentasHistoricas = repoVentas.ContarVentasTotales();
-        //    bool datosMaduros = totalVentasHistoricas >= MIN_VENTAS_MADUREZ;
-
-        //    foreach (var loteAncla in lotesEnRiesgo)
-        //    {
-        //        OfertaSugerida propuesta = new OfertaSugerida
-        //        {
-        //            IdLote = loteAncla.IdLote,
-        //            Estado = "Pendiente",
-        //            FechaGeneracion = DateTime.Now
-        //        };
-
-        //        if (datosMaduros)
-        //        {
-        //            // ==========================================================
-        //            // MODO A: MINERÍA DE DATOS (Market Basket Analysis)
-        //            // ==========================================================
-        //            string? idProductoGancho = repoVentas.ObtenerProductoMasAsociado(loteAncla.IdProducto);
-
-        //            if (!string.IsNullOrEmpty(idProductoGancho))
-        //            {
-        //                propuesta.IdProductoAsociado = idProductoGancho;
-        //                propuesta.DescuentoSugerido = CalcularDescuento(loteAncla);
-        //                propuesta.TituloOferta = $"Combo Inteligente: Llevando {ObtenerNombre(idProductoGancho)}, {propuesta.DescuentoSugerido}% OFF en {ObtenerNombre(loteAncla.IdProducto)} (Vence en {loteAncla.DiasParaVencimiento} días)";
-        //            }
-        //        }
-
-        //        // Si no hay datos maduros o el Modo A no encontró asociaciones fuertes, entra el Fallback
-        //        if (string.IsNullOrEmpty(propuesta.IdProductoAsociado))
-        //        {
-        //            // ==========================================================
-        //            // MODO B: ARRANQUE EN FRÍO (Fallback Logístico)
-        //            // ==========================================================
-        //            string? idProductoSobreStock = repoProducto.ObtenerProductoConMayorStock();
-
-        //            if (!string.IsNullOrEmpty(idProductoSobreStock) && idProductoSobreStock != loteAncla.IdProducto)
-        //            {
-        //                // Fallback 1: Cruzar con el producto que más abunda en el galpón
-        //                propuesta.IdProductoAsociado = idProductoSobreStock;
-        //                propuesta.DescuentoSugerido = CalcularDescuento(loteAncla);
-        //                propuesta.TituloOferta = $"Oportunidad Logística: Llevando {ObtenerNombre(idProductoSobreStock)}, {propuesta.DescuentoSugerido}% OFF en {ObtenerNombre(loteAncla.IdProducto)}";
-        //            }
-        //            else
-        //            {
-        //                // Fallback 2: Liquidación directa por volumen
-        //                propuesta.IdProductoAsociado = null;
-        //                propuesta.DescuentoSugerido = CalcularDescuento(loteAncla) + 10; // Extra descuento
-        //                propuesta.TituloOferta = $"LIQUIDACIÓN FEFO: {propuesta.DescuentoSugerido}% OFF en {ObtenerNombre(loteAncla.IdProducto)}";
-        //            }
-        //        }
-
-        //        nuevasOfertas.Add(propuesta);
-        //    }
-
-        //    // Guardamos masivamente las sugerencias en la Base de Datos usando el DAO Desconectado
-        //    repoOfertas.GuardarOfertasSugeridas(nuevasOfertas);
-
-        //    return nuevasOfertas;
-        //}
-        // 1. Método para mostrar el cartel preventivo apenas el vendedor selecciona un producto
         public void EjecutarMotorAnaliticoCompleto()
         {
             DataTable? dtLotes = repoOfertas.ObtenerLotes();
@@ -145,13 +69,13 @@ namespace BLL
                     descuentoPropuesto = 60.00m;
                 }
                 // REGLA 2: EXCESO STOCK
-                else if (diasRestantes > 30 && diasRestantes <= 90 && stockActual > 100)
+                else if (diasRestantes > 30 && diasRestantes <= 110 && stockActual >= 120)
                 {
                     tituloPropuesto = $"ALERTA STOCK: Excedente de {nombreBebida} ({stockActual} unids). 35% OFF recomendado.";
                     descuentoPropuesto = 35.00m;
                 }
-                // REGLA 3: VENTA CRUZADA
-                else if (diasRestantes > 30 && diasRestantes <= 60 && stockActual <= 100)
+                // REGLA 3: VENTA CRUZADA (Ampliamos a 90 días)
+                else if (diasRestantes > 30 && diasRestantes <= 110 && stockActual < 120)
                 {
                     var loteGancho = dtLotes.AsEnumerable()
                         .FirstOrDefault(l => l.RowState != DataRowState.Deleted &&

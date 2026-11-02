@@ -9,7 +9,7 @@ using BLL;
 
 namespace UI.Compras
 {
-    public partial class RecepcionMercaderiaUI : Form // Cambia a FormBaseObserver si usas traducciones dinámicas
+    public partial class RecepcionMercaderiaUI : FormBaseObserver // Cambia a FormBaseObserver si usas traducciones dinámicas
     {
         private GestorCompras gestorCompras;
         private GestorRecepcion gestorRecepcion; // Lo crearemos en el próximo paso
@@ -176,6 +176,36 @@ namespace UI.Compras
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error del Sistema", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        protected override void TraducirElementosParticulares(string codigoIdioma)
+        {
+            this.Text = GestorIdioma.GetInstance.TraducirMensaje("RecepcionMercaderiaUI", "Recepción de Mercadería");
+            lblTitulo.Text = GestorIdioma.GetInstance.TraducirMensaje("lblTituloRecepcion", "Paso 1: Seleccione la OC que acaba de llegar");
+            lblRemito.Text = GestorIdioma.GetInstance.TraducirMensaje("lblRemitoRecepcion", "Paso 2: Ingrese el Nro. de Remito Papel");
+            lblInstrucciones.Text = GestorIdioma.GetInstance.TraducirMensaje("lblInstruccionesRecepcion", "Paso 3: Complete Lote y Vencimiento en las celdas amarillas");
+            btnConfirmarIngreso.Text = GestorIdioma.GetInstance.TraducirMensaje("btnConfirmarIngreso", "Confirmar Ingreso");
+
+            if (dgvOrdenesPendientes != null && dgvOrdenesPendientes.Columns.Count > 0)
+            {
+                if (dgvOrdenesPendientes.Columns.Contains("IdOrden"))
+                    dgvOrdenesPendientes.Columns["IdOrden"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_IdOrden", "N° Orden");
+                if (dgvOrdenesPendientes.Columns.Contains("Estado"))
+                    dgvOrdenesPendientes.Columns["Estado"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_EstadoOC", "Estado Actual");
+            }
+
+            if (dgvDetallesRecepcion != null && dgvDetallesRecepcion.Columns.Count > 0)
+            {
+                if (dgvDetallesRecepcion.Columns.Contains("IdProducto"))
+                    dgvDetallesRecepcion.Columns["IdProducto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CodigoBarras", "Código de Barras");
+                if (dgvDetallesRecepcion.Columns.Contains("Producto"))
+                    dgvDetallesRecepcion.Columns["Producto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_Producto", "Producto");
+                if (dgvDetallesRecepcion.Columns.Contains("CantEsperada"))
+                    dgvDetallesRecepcion.Columns["CantEsperada"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_CantEsperada", "Cant. Esperada");
+                if (dgvDetallesRecepcion.Columns.Contains("LoteIngresado"))
+                    dgvDetallesRecepcion.Columns["LoteIngresado"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_LoteIngresado", "Lote Ingresado");
+                if (dgvDetallesRecepcion.Columns.Contains("FechaVto"))
+                    dgvDetallesRecepcion.Columns["FechaVto"].HeaderText = GestorIdioma.GetInstance.TraducirMensaje("grid_FechaVto", "Fecha de Vencimiento");
             }
         }
     }

@@ -30,7 +30,7 @@ namespace UI.Administracion
 
         private void GestionOfertasInteligentesUI_Load(object? sender, EventArgs e)
         {
-            panelEdicion.Enabled = false;
+            panelEdicion.Enabled = true;
             CargarGrilla();
         }
 
@@ -88,7 +88,7 @@ namespace UI.Administracion
             if (ofertasPendientes.Count == 0)
             {
                 lblPropuestaDetalle.Text = GestorIdioma.GetInstance.TraducirMensaje("lbl_SeleccionePropuesta", "Seleccione una propuesta de la grilla...");
-                panelEdicion.Enabled = false;
+                panelEdicion.Enabled = true;
                 numDescuento.Value = 0;
             }
         }
